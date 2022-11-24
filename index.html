@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live2D-Companion</title>
+    <script src="assets/live2dcubismcore.min.js"></script>
+    <script type="module" src="index.js"></script>
+    <script>
+      window.addEventListener("load", () =>
+        companion({
+          models: [
+            "assets/models/Mao/Mao.model3.json",
+          ],
+        })
+      );
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
