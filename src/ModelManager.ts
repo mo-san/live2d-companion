@@ -449,17 +449,6 @@ export class ModelManager extends CubismUserModel {
     this._dragManager.update(Time.deltaTime);
     this._dragX = this._dragManager.getX();
     this._dragY = this._dragManager.getY();
-    // if (!flag) {
-    //   this._modelMatrix.left(1);
-    //   this._modelMatrix.translate(0.5, 0.5);
-    //   console.log(this._modelMatrix.getArray());
-    //   this._modelMatrix.setWidth(2);
-    //   this._modelMatrix.scaleRelative(2, 2);
-    //   this._modelMatrix.top(0);
-    //   this._modelMatrix.left(-1);
-    //   console.log(this._modelMatrix.getArray());
-    //   flag = true;
-    // }
 
     // --------------------------------------------------------------------------
     /**
@@ -531,5 +520,3 @@ export class ModelManager extends CubismUserModel {
     renderer.drawModel();
   }
 }
-
-// let flag = false;

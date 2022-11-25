@@ -62,40 +62,6 @@ import {
   clsToggleMessage,
 } from "./Styles";
 
-/**
- * A number representing the handler for 'setTimeout' or 'setInterval'
- */
-let MessageTimer: number = 0;
-
-// ------------------------------
-// ------------------------------
-export let viewMatrix: CubismViewMatrix;
-export let deviceToScreenMatrix: CubismMatrix44;
-
-/** X座標をView座標に変換する。 */
-export function transformViewX(deviceX: number): number {
-  const screenX = deviceToScreenMatrix.transformX(deviceX); // 論理座標変換した座標を取得。
-  return viewMatrix.invertTransformX(screenX); // 拡大、縮小、移動後の値。
-}
-
-/** Y座標をView座標に変換する。 */
-export function transformViewY(deviceY: number): number {
-  const screenY = deviceToScreenMatrix.transformY(deviceY); // 論理座標変換した座標を取得。
-  return viewMatrix.invertTransformY(screenY);
-}
-
-export function initializeViewMatrix(): [a: CubismViewMatrix, b: CubismMatrix44] {
-  const viewMatrix = new CubismViewMatrix();
-  const { width, height } = CANVAS;
-
-  const deviceToScreenMatrix = new CubismMatrix44();
-  deviceToScreenMatrix.scale(2 / width, -2 / height);
-  deviceToScreenMatrix.translateRelative(-width / 2, -height / 2);
-  deviceToScreenMatrix.translateRelative(-(innerWidth - width), -(innerHeight - height));
-
-  return [viewMatrix, deviceToScreenMatrix];
-}
-
 // ------------------------------
 // Language support
 // ------------------------------
@@ -232,7 +198,7 @@ export class Widget {
   slideInFrom: keyof typeof Dimension;
   modelVisible: boolean;
   modelCoordInitial: { x: number; y: number };
-  modelDistance: {x: number; y: number}
+  modelDistance: { x: number; y: number };
   messages?: MessageSchema;
   private readonly _messages: string | string[];
   messagePosition: keyof typeof MessagePosition;
@@ -242,12 +208,16 @@ export class Widget {
   version: string;
   private pointerCoord: { x: number; y: number } = { x: 0, y: 0 };
   private baseWeightArray: number[] = [];
+  deviceToScreenMatrix: CubismMatrix44;
+  viewMatrix = new CubismViewMatrix();
+  /** A number representing the handler for 'setTimeout' or 'setInterval' */
+  MessageTimer: number = 0;
 
   constructor(userConfig: Config) {
     // update default settings with user defined config
     const config: ConfigNotNull = Object.assign(DefaultConfig, userConfig);
 
-    this.resizeApp(config.width, config.height);
+    this.resizeApp(config);
 
     if (config.models.length === 0) console.error(`No models provided.`);
     this.models = config.models.map(getModelLocation);
@@ -266,9 +236,10 @@ export class Widget {
     this.modelDistance = {
       x: Math.max(0, config.modelDistance.x),
       y: Math.max(0, config.modelDistance.y),
-    }
+    };
     this.modelCoordInitial = this.calcInitialAppCoord();
     Object.assign(elemAppRoot.style, this.calcInitialPosition());
+    this.deviceToScreenMatrix = this.refreshViewpointMatrix(this.modelCoordInitial);
 
     this._messages = config.messages;
     this.messagePosition = config.messagePosition.toLowerCase() as keyof typeof MessagePosition;
@@ -279,7 +250,6 @@ export class Widget {
 
     fillUiWithUserLanguage();
 
-    [viewMatrix, deviceToScreenMatrix] = initializeViewMatrix();
     setupWebglFeatures();
   }
 
@@ -318,7 +288,7 @@ export class Widget {
     }
   }
 
-  resizeApp(width: number, height: number): void {
+  resizeApp({ width, height }: { width: number; height: number }): void {
     if (width < ThresholdAppRootMini || height < ThresholdAppRootMini) {
       elemAppRoot.classList.add(clsAppRootMini);
     }
@@ -351,6 +321,7 @@ export class Widget {
     this.modelManager = undefined;
 
     await this.loadModel(this.currentModelIndex);
+    this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
   }
 
   appear(event?: PointerEvent): void {
@@ -416,8 +387,8 @@ export class Widget {
   }
 
   onWindowResize(_event: UIEvent): void {
-    const { width, height } = elemAppRoot.getBoundingClientRect();
-    this.resizeApp(width, height);
+    this.resizeApp(elemAppRoot.getBoundingClientRect());
+    this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
     this.bringBackAppIntoWindow();
   }
 
@@ -449,8 +420,8 @@ export class Widget {
   }
 
   onPointerMove(event: PointerEvent): void {
-    const viewX: number = transformViewX(event.x);
-    const viewY: number = transformViewY(event.y);
+    const viewX: number = this.transformViewX(event.x);
+    const viewY: number = this.transformViewY(event.y);
 
     this.modelManager?.setDragging(viewX, viewY);
     void this.modelManager?.touchAt(viewX, viewY, (part) => this.sayWhenTouched(part));
@@ -475,7 +446,10 @@ export class Widget {
   }
 
   onPointerUp(_event: PointerEvent): void {
-    elemAppRoot.classList.remove(`${clsDragging}`);
+    if (elemAppRoot.classList.contains(clsDragging)) {
+      elemAppRoot.classList.remove(clsDragging);
+      this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+    }
   }
 
   async loop(time: number): Promise<void> {
@@ -503,6 +477,38 @@ export class Widget {
     await this.modelManager?.update();
   }
 
+  /** Converts X position in device coordinates into the viewport coordinates */
+  transformViewX(deviceX: number): number {
+    // coordinates are converted into logical ones
+    const screenX = this.deviceToScreenMatrix.transformX(deviceX);
+    // the value after the scaling and parallel translations are applied
+    return this.viewMatrix.invertTransformX(screenX);
+  }
+
+  /** Converts Y position in device coordinates into the viewport coordinates */
+  transformViewY(deviceY: number): number {
+    const screenY = this.deviceToScreenMatrix.transformY(deviceY);
+    return this.viewMatrix.invertTransformY(screenY);
+  }
+
+  /**
+   * Translates the position of the viewport (i.e. a camera) to the current position of the canvas.
+   * @param x X position in the device coordinates (e.g. 0 ~ 1920)
+   * @param y Y position in the device coordinates (e.g. 0 ~ 1080)
+   */
+  refreshViewpointMatrix({ x, y }: { x: number; y: number }): CubismMatrix44 {
+    const { width, height } = CANVAS;
+
+    const deviceToScreenMatrix = new CubismMatrix44();
+    deviceToScreenMatrix.scale(2 / width, -2 / height);
+    // Shifts the camera position to the center of the canvas
+    deviceToScreenMatrix.translateRelative(-width / 2, -height / 2);
+    // Shifts the camera position to the position of the canvas
+    deviceToScreenMatrix.translateRelative(-x, -y);
+
+    return deviceToScreenMatrix;
+  }
+
   async loadMesseges(messagesOrUrl: string | string[]): Promise<MessageSchema> {
     if (messagesOrUrl instanceof Array) {
       return {
@@ -523,13 +529,13 @@ export class Widget {
     elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
 
     this.sayRandomWord();
-    MessageTimer = setInterval(() => this.sayRandomWord(), MessageDurationSeconds * 1000);
+    this.MessageTimer = setInterval(() => this.sayRandomWord(), MessageDurationSeconds * 1000);
   }
 
   stopSpeaking(): void {
     elemMessage.innerText = "";
     elemMessage.classList.remove(`${clsMessageVisible}`);
-    clearInterval(MessageTimer);
+    clearInterval(this.MessageTimer);
   }
 
   toggleMessage(event: PointerEvent): void {
@@ -654,7 +660,7 @@ export class Widget {
 
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
-    let { x: xDistance, y: yDistance } = this.modelDistance
+    let { x: xDistance, y: yDistance } = this.modelDistance;
     xDistance = xDistance > 1 ? xDistance : xDistance * innerWidth;
     yDistance = yDistance > 1 ? yDistance : yDistance * innerHeight;
     const xPos = this.modelPosition.includes("left") ? xDistance : innerWidth - width - xDistance;
