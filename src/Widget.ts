@@ -231,7 +231,8 @@ export class Widget {
   modelPosition: keyof typeof ModelPosition;
   slideInFrom: keyof typeof Dimension;
   modelVisible: boolean;
-  modelCoordInitial: { top: number; left: number };
+  modelCoordInitial: { x: number; y: number };
+  modelDistance: {x: number; y: number}
   messages?: MessageSchema;
   private readonly _messages: string | string[];
   messagePosition: keyof typeof MessagePosition;
@@ -262,15 +263,11 @@ export class Widget {
     }
 
     this.slideInFrom = config.slideInFrom;
-    const distance = {
-      y: Math.max(0, config.modelDistance.y),
+    this.modelDistance = {
       x: Math.max(0, config.modelDistance.x),
-    };
-    const { width, height } = elemAppRoot.getBoundingClientRect();
-    this.modelCoordInitial = this.calcAppCoord({
-      top: this.modelPosition.includes("top") ? distance.y : window.innerHeight - distance.y - height,
-      left: this.modelPosition.includes("left") ? distance.x : window.innerWidth - distance.x - width,
-    });
+      y: Math.max(0, config.modelDistance.y),
+    }
+    this.modelCoordInitial = this.calcInitialAppCoord();
     Object.assign(elemAppRoot.style, this.calcInitialPosition());
 
     this._messages = config.messages;
@@ -650,45 +647,30 @@ export class Widget {
     }
   }
 
-  calcAppCoord({ top, left }: { top: number; left: number }): { top: number; left: number } {
+  calcInitialAppCoord(): { x: number; y: number } {
     function clamp(target: number, min: number, max: number): number {
       return Math.min(Math.max(min, target), max);
     }
 
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
-    const formulas = {
-      [ModelPosition.bottomright]: {
-        top: top > 1 ? innerHeight - top - height : innerHeight - top * innerHeight - height,
-        left: left > 1 ? innerWidth - left - width : innerWidth - left * innerWidth - width,
-      },
-      [ModelPosition.bottomleft]: {
-        top: top > 1 ? innerHeight - top - height : innerHeight - top * innerHeight - height,
-        left: left > 1 ? left : left * innerWidth,
-      },
-      [ModelPosition.topright]: {
-        top: top > 1 ? top : top * innerHeight,
-        left: left > 1 ? innerWidth - left - width : innerWidth - left * innerWidth - width,
-      },
-      [ModelPosition.topleft]: {
-        top: top > 1 ? top : top * innerHeight,
-        left: left > 1 ? left : left * innerWidth,
-      },
-    };
-
-    const result = formulas[this.modelPosition];
-    return { top: clamp(result.top, 0, window.innerHeight), left: clamp(result.left, 0, window.innerWidth) };
+    let { x: xDistance, y: yDistance } = this.modelDistance
+    xDistance = xDistance > 1 ? xDistance : xDistance * innerWidth;
+    yDistance = yDistance > 1 ? yDistance : yDistance * innerHeight;
+    const xPos = this.modelPosition.includes("left") ? xDistance : innerWidth - width - xDistance;
+    const yPos = this.modelPosition.includes("top") ? yDistance : innerHeight - height - yDistance;
+    return { x: clamp(xPos, 0, window.innerWidth), y: clamp(yPos, 0, window.innerHeight) };
   }
 
   calcInitialPosition(): { top: string; left: string } {
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
-    const { top, left } = this.calcAppCoord(this.modelCoordInitial);
+    const { x, y } = this.calcInitialAppCoord();
     const moves = {
-      [Dimension.top]: { top: `${-height}px`, left: `${left}px` },
-      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${left}px` },
-      [Dimension.left]: { top: `${top}px`, left: `${-width}px` },
-      [Dimension.right]: { top: `${top}px`, left: `${innerWidth}px` },
+      [Dimension.top]: { top: `${-height}px`, left: `${x}px` },
+      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${x}px` },
+      [Dimension.left]: { top: `${y}px`, left: `${-width}px` },
+      [Dimension.right]: { top: `${y}px`, left: `${innerWidth}px` },
     };
     return moves[this.slideInFrom];
   }
@@ -696,14 +678,14 @@ export class Widget {
   calcAppearingKeyframes(): { top: string[] } | { left: string[] } {
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
-    const { top, left } = this.calcAppCoord(this.modelCoordInitial);
+    const { x, y } = this.calcInitialAppCoord();
 
     // No need to specify the corresponding parameter (top or left) because it's set in the initialization.
     const moves = {
-      [Dimension.top]: { top: [`${-height}px`, `${height * 0.3}`, `${top}px`] },
-      [Dimension.bottom]: { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}`, `${top}px`] },
-      [Dimension.left]: { left: [`${-width}px`, `${width * 0.3}`, `${left}px`] },
-      [Dimension.right]: { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}`, `${left}px`] },
+      [Dimension.top]: { top: [`${-height}px`, `${height * 0.3}`, `${y}px`] },
+      [Dimension.bottom]: { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}`, `${y}px`] },
+      [Dimension.left]: { left: [`${-width}px`, `${width * 0.3}`, `${x}px`] },
+      [Dimension.right]: { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}`, `${x}px`] },
     };
     return moves[this.slideInFrom];
   }
@@ -711,12 +693,12 @@ export class Widget {
   calcDisappearingKeyframes(): { top: string[]; left: string[] } {
     const { top, left, width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
-    const { top: topInitial, left: leftInitial } = this.calcAppCoord(this.modelCoordInitial);
+    const { x, y } = this.calcInitialAppCoord();
     const moves = {
-      [Dimension.top]: { top: `${-height}px`, left: `${leftInitial}px` },
-      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${leftInitial}px` },
-      [Dimension.left]: { top: `${topInitial}px`, left: `${-width}px` },
-      [Dimension.right]: { top: `${topInitial}px`, left: `${innerWidth}px` },
+      [Dimension.top]: { top: `${-height}px`, left: `${x}px` },
+      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${x}px` },
+      [Dimension.left]: { top: `${y}px`, left: `${-width}px` },
+      [Dimension.right]: { top: `${y}px`, left: `${innerWidth}px` },
     };
     const move = moves[this.slideInFrom];
     return {
