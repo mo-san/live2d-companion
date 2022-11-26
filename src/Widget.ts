@@ -687,13 +687,13 @@ export class Widget {
     // No need to specify the corresponding parameter (top or left) because it's set in the initialization.
     switch (this.slideInFrom) {
       case Dimension.top:
-        return { top: [`${-height}px`, `${height * 0.3}`, `${y}px`] };
+        return { top: [`${-height}px`, `${height * 0.3}px`, `${y}px`] };
       case Dimension.bottom:
-        return { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}`, `${y}px`] };
+        return { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}px`, `${y}px`] };
       case Dimension.left:
-        return { left: [`${-width}px`, `${width * 0.3}`, `${x}px`] };
+        return { left: [`${-width}px`, `${width * 0.3}px`, `${x}px`] };
       case Dimension.right:
-        return { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}`, `${x}px`] };
+        return { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}px`, `${x}px`] };
     }
   }
 
