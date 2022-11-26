@@ -332,45 +332,45 @@ export class ModelManager extends CubismUserModel {
    * @return null if failed to load image information
    */
   protected async createTextureFromPngFile(fileName: string, i: number): Promise<void> {
+    function textureFrom(img: HTMLImageElement): WebGLTexture {
+      // Create a new empty texture
+      const texture = GLContext.createTexture() as WebGLTexture;
+
+      GLContext.bindTexture(GLContext.TEXTURE_2D, texture);
+
+      // Write the texture into the pixels
+      GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MIN_FILTER, GLContext.LINEAR_MIPMAP_LINEAR);
+      GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MAG_FILTER, GLContext.LINEAR);
+
+      // Use premultiplication
+      GLContext.pixelStorei(GLContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+
+      GLContext.texImage2D(
+        GLContext.TEXTURE_2D, // target
+        0, // level
+        GLContext.RGBA, // internal format
+        GLContext.RGBA, // format
+        GLContext.UNSIGNED_BYTE, // type
+        img // pixels
+      );
+
+      GLContext.generateMipmap(GLContext.TEXTURE_2D);
+      // Unset the bound texture
+      GLContext.bindTexture(GLContext.TEXTURE_2D, null);
+
+      return texture;
+    }
+
     const buffer = await this.getBuffer(fileName);
     const blob = new Blob([new Uint8Array(buffer)], { type: "image/png" });
     const imageUrl = URL.createObjectURL(blob);
 
     const img = new Image();
     img.onload = () => {
-      this.getRenderer().bindTexture(i, this.loadedTextureOf(img));
-      URL.revokeObjectURL(imageUrl);
+      this.getRenderer().bindTexture(i, textureFrom(img));
+      URL.revokeObjectURL(imageUrl); // release the reference to avoid the memory leak
     };
     img.src = imageUrl;
-  }
-
-  protected loadedTextureOf(img: HTMLImageElement): WebGLTexture {
-    // Create a new empty texture
-    const texture = GLContext.createTexture() as WebGLTexture;
-
-    GLContext.bindTexture(GLContext.TEXTURE_2D, texture);
-
-    // Write the texture into the pixels
-    GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MIN_FILTER, GLContext.LINEAR_MIPMAP_LINEAR);
-    GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MAG_FILTER, GLContext.LINEAR);
-
-    // Use premultiplication
-    GLContext.pixelStorei(GLContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
-
-    GLContext.texImage2D(
-      GLContext.TEXTURE_2D, // target
-      0, // level
-      GLContext.RGBA, // internal format
-      GLContext.RGBA, // format
-      GLContext.UNSIGNED_BYTE, // type
-      img // pixels
-    );
-
-    GLContext.generateMipmap(GLContext.TEXTURE_2D);
-    // Unset the bound texture
-    GLContext.bindTexture(GLContext.TEXTURE_2D, null);
-
-    return texture;
   }
 
   setExpression(expressionName: string): CubismMotionQueueEntryHandle {

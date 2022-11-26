@@ -227,7 +227,8 @@ export class Widget {
     if (this.modelVisible) {
       Object.assign(elemContent.style, { display: null });
     } else {
-      this.showElemRevealer();
+      elemRevealer.classList.add(this.modelPosition);
+      elemRevealer.style.display = "grid";
     }
 
     this.slideInFrom = config.slideInFrom;
@@ -375,13 +376,9 @@ export class Widget {
     anim.addEventListener("finish", () => {
       Object.assign(elemAppRoot.style, goal);
       elemContent.style.display = "none";
-      this.showElemRevealer();
+      elemRevealer.classList.add(this.modelPosition);
+      elemRevealer.style.display = "grid";
     });
-  }
-
-  showElemRevealer(): void {
-    elemRevealer.classList.add(this.modelPosition);
-    elemRevealer.style.display = "grid";
   }
 
   onWindowResize(_event: UIEvent): void {
@@ -670,13 +667,16 @@ export class Widget {
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
-    const moves = {
-      [Dimension.top]: { top: `${-height}px`, left: `${x}px` },
-      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${x}px` },
-      [Dimension.left]: { top: `${y}px`, left: `${-width}px` },
-      [Dimension.right]: { top: `${y}px`, left: `${innerWidth}px` },
-    };
-    return moves[this.slideInFrom];
+    switch (this.slideInFrom) {
+      case Dimension.top:
+        return { top: `${-height}px`, left: `${x}px` };
+      case Dimension.bottom:
+        return { top: `${innerHeight}px`, left: `${x}px` };
+      case Dimension.left:
+        return { top: `${y}px`, left: `${-width}px` };
+      case Dimension.right:
+        return { top: `${y}px`, left: `${innerWidth}px` };
+    }
   }
 
   calcAppearingKeyframes(): { top: string[] } | { left: string[] } {
@@ -685,30 +685,32 @@ export class Widget {
     const { x, y } = this.calcInitialAppCoord();
 
     // No need to specify the corresponding parameter (top or left) because it's set in the initialization.
-    const moves = {
-      [Dimension.top]: { top: [`${-height}px`, `${height * 0.3}`, `${y}px`] },
-      [Dimension.bottom]: { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}`, `${y}px`] },
-      [Dimension.left]: { left: [`${-width}px`, `${width * 0.3}`, `${x}px`] },
-      [Dimension.right]: { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}`, `${x}px`] },
-    };
-    return moves[this.slideInFrom];
+    switch (this.slideInFrom) {
+      case Dimension.top:
+        return { top: [`${-height}px`, `${height * 0.3}`, `${y}px`] };
+      case Dimension.bottom:
+        return { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}`, `${y}px`] };
+      case Dimension.left:
+        return { left: [`${-width}px`, `${width * 0.3}`, `${x}px`] };
+      case Dimension.right:
+        return { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}`, `${x}px`] };
+    }
   }
 
   calcDisappearingKeyframes(): { top: string[]; left: string[] } {
     const { top, left, width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
-    const moves = {
-      [Dimension.top]: { top: `${-height}px`, left: `${x}px` },
-      [Dimension.bottom]: { top: `${innerHeight}px`, left: `${x}px` },
-      [Dimension.left]: { top: `${y}px`, left: `${-width}px` },
-      [Dimension.right]: { top: `${y}px`, left: `${innerWidth}px` },
-    };
-    const move = moves[this.slideInFrom];
-    return {
-      top: [`${top}px`, move.top],
-      left: [`${left}px`, move.left],
-    };
+    switch (this.slideInFrom) {
+      case Dimension.top:
+        return { top: [`${top}px`, `${-height}px`], left: [`${left}px`, `${x}px`] };
+      case Dimension.bottom:
+        return { top: [`${top}px`, `${innerHeight}px`], left: [`${left}px`, `${x}px`] };
+      case Dimension.left:
+        return { top: [`${top}px`, `${y}px`], left: [`${left}px`, `${-width}px`] };
+      case Dimension.right:
+        return { top: [`${top}px`, `${y}px`], left: [`${left}px`, `${innerWidth}px`] };
+    }
   }
 
   swingMessage(): Animation {
