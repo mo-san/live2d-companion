@@ -46,7 +46,7 @@ export const MessageDurationSeconds = 10;
 export const MessageSwingingSeconds = 40;
 export const MessageAppearDelaySeconds = 3;
 export const AppDisappearingDurationSeconds = 1;
-export const AppRevealingDurationSeconds = 0.5;
+export const AppRevealingDurationSeconds = 2;
 export const MenuRevealingDurationSeconds = 0.3;
 
 export const LanguageValueUnset = "unset";
@@ -226,7 +226,7 @@ export const DefaultConfig: ConfigNotNull = {
   width: DefaultWidth,
   height: DefaultHeight,
   draggable: true,
-  messageVisible: false,
+  messageVisible: true,
   messagePosition: MessagePosition.top,
   messages: [],
 };
