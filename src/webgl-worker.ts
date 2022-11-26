@@ -16,11 +16,7 @@ import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
 import { cacheBucketNameRoot, HitTestAreasNotNull, ModelLocationNotNull, MotionGroup, Priority } from "./Constants";
-import { CANVAS, GLContext, Time } from "./main";
-
-function getParamId(name: string): CubismId {
-  return CubismFramework.getIdManager().getId(name);
-}
+import { CANVAS } from "./index";
 
 /** find the longest common path element */
 function findLongestCommonPath(mapping: Map<string, ArrayBuffer>): string {
@@ -43,23 +39,11 @@ async function unzip(zipFile: Uint8Array): Promise<Map<string, Uint8Array>> {
   return new Map<string, Uint8Array>(Object.entries(unzipped));
 }
 
-export function flushWebglContext(): void {
-  GLContext.flush();
-}
-
-export function setupWebglFeatures(): void {
-  GLContext.clearColor(0.0, 0.0, 0.0, 1.0);
-  GLContext.enable(GLContext.DEPTH_TEST);
-  GLContext.depthFunc(GLContext.LEQUAL);
-  GLContext.clear(GLContext.COLOR_BUFFER_BIT | GLContext.DEPTH_BUFFER_BIT);
-  GLContext.clearDepth(1.0);
-  GLContext.enable(GLContext.BLEND);
-  GLContext.blendFunc(GLContext.SRC_ALPHA, GLContext.ONE_MINUS_SRC_ALPHA);
-}
-
 export class ModelManager extends CubismUserModel {
   /* @ts-expect-error */ /** represents the contents in .model3.json */
   protected settings: CubismModelSettingJson;
+  /* @ts-expect-error */
+  protected glContext: WebGLRenderingContext;
   /** a mapping of expression's names and their property */
   protected expresssionsMap = new csmMap<string, ACubismMotion>();
   /** stores IDs of parameters for eyeblinking of a model */
@@ -93,6 +77,8 @@ export class ModelManager extends CubismUserModel {
     modelManager.cacheBucketName = `${cacheBucketNameRoot}-v${version}`;
     await modelManager.deleteOldCaches();
 
+    modelManager.glContext = CANVAS.getContext("webgl") as WebGLRenderingContext;
+    modelManager.setupWebglFeatures();
     modelManager.hitTest = hitTest;
 
     let buffer;
@@ -109,6 +95,20 @@ export class ModelManager extends CubismUserModel {
     return modelManager;
   }
 
+  flushWebglContext(): void {
+    this.glContext.flush();
+  }
+
+  setupWebglFeatures(): void {
+    this.glContext.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.glContext.enable(this.glContext.DEPTH_TEST);
+    this.glContext.depthFunc(this.glContext.LEQUAL);
+    this.glContext.clear(this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT);
+    this.glContext.clearDepth(1.0);
+    this.glContext.enable(this.glContext.BLEND);
+    this.glContext.blendFunc(this.glContext.SRC_ALPHA, this.glContext.ONE_MINUS_SRC_ALPHA);
+  }
+
   async load(): Promise<void> {
     await this.loadModelImpl();
     await this.loadExpressionImpl();
@@ -121,7 +121,7 @@ export class ModelManager extends CubismUserModel {
     super.createRenderer();
     await this.setupTextures();
     this.getRenderer().setIsPremultipliedAlpha(true); // use premultipliedAlpha for better alpha quality on iPhone
-    this.getRenderer().startUp(GLContext);
+    this.getRenderer().startUp(this.glContext);
   }
 
   /**
@@ -227,6 +227,8 @@ export class ModelManager extends CubismUserModel {
   }
 
   protected setupBreathing(): void {
+    const getParamId = (name: string): CubismId => CubismFramework.getIdManager().getId(name);
+
     const breathParameters = new csmVector<BreathParameterData>();
     [
       { id: Params.ParamAngleX, offset: 0.0, peak: 15.0, cycle: 6.5345, weight: 0.5 },
@@ -344,34 +346,38 @@ export class ModelManager extends CubismUserModel {
    * @return null if failed to load image information
    */
   protected async createTextureFromPngFile(fileName: string, i: number): Promise<void> {
-    function textureFrom(img: HTMLImageElement): WebGLTexture {
+    const textureFrom = (img: HTMLImageElement): WebGLTexture => {
       // Create a new empty texture
-      const texture = GLContext.createTexture() as WebGLTexture;
+      const texture = this.glContext.createTexture() as WebGLTexture;
 
-      GLContext.bindTexture(GLContext.TEXTURE_2D, texture);
+      this.glContext.bindTexture(this.glContext.TEXTURE_2D, texture);
 
       // Write the texture into the pixels
-      GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MIN_FILTER, GLContext.LINEAR_MIPMAP_LINEAR);
-      GLContext.texParameteri(GLContext.TEXTURE_2D, GLContext.TEXTURE_MAG_FILTER, GLContext.LINEAR);
+      this.glContext.texParameteri(
+        this.glContext.TEXTURE_2D,
+        this.glContext.TEXTURE_MIN_FILTER,
+        this.glContext.LINEAR_MIPMAP_LINEAR
+      );
+      this.glContext.texParameteri(this.glContext.TEXTURE_2D, this.glContext.TEXTURE_MAG_FILTER, this.glContext.LINEAR);
 
       // Use premultiplication
-      GLContext.pixelStorei(GLContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+      this.glContext.pixelStorei(this.glContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
 
-      GLContext.texImage2D(
-        GLContext.TEXTURE_2D, // target
+      this.glContext.texImage2D(
+        this.glContext.TEXTURE_2D, // target
         0, // level
-        GLContext.RGBA, // internal format
-        GLContext.RGBA, // format
-        GLContext.UNSIGNED_BYTE, // type
+        this.glContext.RGBA, // internal format
+        this.glContext.RGBA, // format
+        this.glContext.UNSIGNED_BYTE, // type
         img // pixels
       );
 
-      GLContext.generateMipmap(GLContext.TEXTURE_2D);
+      this.glContext.generateMipmap(this.glContext.TEXTURE_2D);
       // Unset the bound texture
-      GLContext.bindTexture(GLContext.TEXTURE_2D, null);
+      this.glContext.bindTexture(this.glContext.TEXTURE_2D, null);
 
       return texture;
-    }
+    };
 
     const buffer = await this.getBuffer(fileName);
     const blob = new Blob([new Uint8Array(buffer)], { type: "image/png" });
@@ -455,14 +461,18 @@ export class ModelManager extends CubismUserModel {
    * About updating the parameters of the models, refer to:
    * https://docs.live2d.com/cubism-sdk-manual/use-framework-web/#update
    */
-  async update(): Promise<void> {
-    await this._updateParameters();
+  async update(deltaTime: number): Promise<void> {
+    await this._updateParameters(deltaTime);
     // make sure 'update()' is called at the end
     this._model.update();
   }
 
-  async _updateParameters(): Promise<void> {
-    this._dragManager.update(Time.deltaTime);
+  addParameterValueById(name: string, value: number) {
+    return this._model.addParameterValueById(CubismFramework.getIdManager().getId(name), value);
+  }
+
+  async _updateParameters(deltaTime: number): Promise<void> {
+    this._dragManager.update(deltaTime);
     this._dragX = this._dragManager.getX();
     this._dragY = this._dragManager.getY();
 
@@ -491,48 +501,53 @@ export class ModelManager extends CubismUserModel {
       await this.startRandomMotion(MotionGroup.Idle, Priority.Idle);
     } else {
       // モーションによるパラメータ更新の有無
-      const motionUpdated = this._motionManager.updateMotion(this._model, Time.deltaTime);
+      const motionUpdated = this._motionManager.updateMotion(this._model, deltaTime);
       // メインモーションの更新がないとき、 まばたき
       if (!motionUpdated && this._eyeBlink != null) {
-        this._eyeBlink.updateParameters(this._model, Time.deltaTime);
+        this._eyeBlink.updateParameters(this._model, deltaTime);
       }
     }
     this._model.saveParameters(); // 状態を保存
     // --------------------------------------------------------------------------
 
-    this._expressionManager?.updateMotion(this._model, Time.deltaTime); // 表情でパラメータ更新（相対変化）
+    this._expressionManager?.updateMotion(this._model, deltaTime); // 表情でパラメータ更新（相対変化）
 
     // マウス移動による顔の向きの調整: -30から30の値を加える
-    this._model.addParameterValueById(getParamId(Params.ParamAngleX), this._dragX * 30);
-    this._model.addParameterValueById(getParamId(Params.ParamAngleY), this._dragY * 30);
-    this._model.addParameterValueById(getParamId(Params.ParamAngleZ), this._dragX * this._dragY * 30);
+    this.addParameterValueById(Params.ParamAngleX, this._dragX * 30);
+    this.addParameterValueById(Params.ParamAngleY, this._dragY * 30);
+    this.addParameterValueById(Params.ParamAngleZ, this._dragX * this._dragY * 30);
 
     // マウス移動による体の向きの調整: -10から10の値を加える
-    this._model.addParameterValueById(getParamId(Params.ParamBodyAngleX), this._dragX * 10);
+    this.addParameterValueById(Params.ParamBodyAngleX, this._dragX * 10);
 
     // マウス移動による目の向きの調整: -1から1の値を加える
-    this._model.addParameterValueById(getParamId(Params.ParamEyeBallX), this._dragX);
-    this._model.addParameterValueById(getParamId(Params.ParamEyeBallY), this._dragY);
+    this.addParameterValueById(Params.ParamEyeBallX, this._dragX);
+    this.addParameterValueById(Params.ParamEyeBallY, this._dragY);
 
     // 呼吸など
-    this._breath?.updateParameters(this._model, Time.deltaTime);
+    this._breath?.updateParameters(this._model, deltaTime);
 
     // 物理演算の設定
-    this._physics?.evaluate(this._model, Time.deltaTime);
+    this._physics?.evaluate(this._model, deltaTime);
 
     // ポーズの設定
-    this._pose?.updateParameters(this._model, Time.deltaTime);
+    this._pose?.updateParameters(this._model, deltaTime);
   }
 
-  draw(matrix: CubismMatrix44): void {
+  draw(matrix: CubismMatrix44, { width, height }: { width: number; height: number }): void {
     const renderer = super.getRenderer();
 
     matrix.multiplyByMatrix(this._modelMatrix);
     renderer.setMvpMatrix(matrix);
 
-    const frameBuffer: WebGLFramebuffer = GLContext.getParameter(GLContext.FRAMEBUFFER_BINDING);
-    const viewport = [0, 0, CANVAS.width, CANVAS.height];
+    const frameBuffer: WebGLFramebuffer = this.glContext.getParameter(this.glContext.FRAMEBUFFER_BINDING);
+    const viewport = [0, 0, width, height];
     renderer.setRenderState(frameBuffer, viewport);
     renderer.drawModel();
+  }
+
+  resizeCanvas(width: number, height: number): void {
+    this.glContext.canvas.width = width;
+    this.glContext.canvas.height = height;
   }
 }

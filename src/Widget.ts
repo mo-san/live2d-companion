@@ -47,9 +47,9 @@ import {
   elemToast,
   elemToggleMessage,
   Time,
-} from "./main";
+} from "./index";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
-import { flushWebglContext, ModelManager, setupWebglFeatures } from "./ModelManager";
+import { ModelManager } from "./webgl-worker";
 import {
   clsAppRootMini,
   clsCredit,
@@ -248,8 +248,6 @@ export class Widget {
     this.draggable = config.draggable;
 
     fillUiWithUserLanguage();
-
-    setupWebglFeatures();
   }
 
   async main(): Promise<void> {
@@ -296,8 +294,7 @@ export class Widget {
     elemAppRoot.style.width = `${width}px`;
     elemAppRoot.style.height = `${height}px`;
 
-    CANVAS.width = elemAppRoot.clientWidth;
-    CANVAS.height = elemAppRoot.clientHeight;
+    this.modelManager?.resizeCanvas(elemAppRoot.clientWidth, elemAppRoot.clientHeight);
   }
 
   protected async loadModel(modelIndex: number): Promise<void> {
@@ -456,7 +453,7 @@ export class Widget {
     Time.deltaTime = (Time.currentFrame - Time.lastFrame) / 1000;
     Time.lastFrame = Time.currentFrame;
 
-    flushWebglContext();
+    this.modelManager?.flushWebglContext();
 
     const projection: CubismMatrix44 = new CubismMatrix44();
 
@@ -468,8 +465,8 @@ export class Widget {
     } else {
       projection.scale(height / width, 1.0);
     }
-    this.modelManager?.draw(projection);
-    await this.modelManager?.update();
+    this.modelManager?.draw(projection, { width, height });
+    await this.modelManager?.update(Time.deltaTime);
   }
 
   /** Converts X position in device coordinates into the viewport coordinates */
