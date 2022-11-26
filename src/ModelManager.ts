@@ -15,7 +15,7 @@ import {
 import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
-import { cacheBucketNameRoot, HitAreaName, MotionGroup, Priority } from "./Constants";
+import { cacheBucketNameRoot, HitTestAreasNotNull, ModelLocationNotNull, MotionGroup, Priority } from "./Constants";
 import { CANVAS, GLContext, Time } from "./main";
 
 function getParamId(name: string): CubismId {
@@ -74,6 +74,7 @@ export class ModelManager extends CubismUserModel {
   /** The properties of the currently playing motion. If set, starting another motion is suppressed. */
   protected motionHandle: CubismMotionQueueEntryHandle | null = null;
   protected cacheBucketName: string = "";
+  protected hitTest: HitTestAreasNotNull | undefined;
 
   /** Prohibit a direct construction to force construct asynchronously. */
   private constructor() {
@@ -84,15 +85,15 @@ export class ModelManager extends CubismUserModel {
    * Initialization. Actual constructor for this class.
    * @param jsonPath the file name (and its path) for the model's JSON file
    * @param zipPath the file path of a zip file which contains the model data
+   * @param hitTest specify this if your model has other name than "Head" or "Body" for hit detectable areas
    * @param version the version of the model(s) to be used for cache deletion
    */
-  static async init(
-    { jsonPath, zipPath }: { jsonPath: string; zipPath: string },
-    version: string
-  ): Promise<ModelManager> {
+  static async init({ jsonPath, zipPath, hitTest }: ModelLocationNotNull, version: string): Promise<ModelManager> {
     const modelManager = new ModelManager();
     modelManager.cacheBucketName = `${cacheBucketNameRoot}-v${version}`;
     await modelManager.deleteOldCaches();
+
+    modelManager.hitTest = hitTest;
 
     let buffer;
 
@@ -395,13 +396,22 @@ export class ModelManager extends CubismUserModel {
     return this.expresssionsMap._keyValues[0].first;
   }
 
-  async touchAt(x: number, y: number, callback?: (part: keyof typeof HitAreaName) => void): Promise<void> {
+  /**
+   * Tests whether the pointer is above the body parts (currently supports "Head" and "Body").
+   * @param x X position in the viewport coordinate (-1 ~ 1)
+   * @param y Y position in the viewport coordinate (-1 ~ 1)
+   * @param callback if given, this will be called after setting a facial expression or before setting a motion.
+   */
+  async touchAt(x: number, y: number, callback?: (part: string) => void): Promise<void> {
     // do nothing while a motion is still active
     if (this.motionHandle != null) return;
 
-    if (this.didHitIn(HitAreaName.Head, x, y)) {
+    if (this.hitTest == null) return;
+    const { head, body } = this.hitTest;
+
+    if (this.didHitIn(head.name, x, y)) {
       this.motionHandle = this.setRandomExpression();
-      if (callback != null) callback(HitAreaName.Head);
+      if (callback != null) callback(head.name);
 
       // reset to the default expression
       setTimeout(() => {
@@ -412,13 +422,9 @@ export class ModelManager extends CubismUserModel {
       return;
     }
 
-    if (this.didHitIn(HitAreaName.Body, x, y)) {
-      if (callback != null) callback(HitAreaName.Body);
-      this.motionHandle = await this.startRandomMotion(
-        MotionGroup.TapBody,
-        Priority.Normal,
-        () => (this.motionHandle = null)
-      );
+    if (this.didHitIn(body.name, x, y)) {
+      if (callback != null) callback(body.name);
+      this.motionHandle = await this.startRandomMotion(body.group, Priority.Normal, () => (this.motionHandle = null));
     }
   }
 

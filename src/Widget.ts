@@ -9,6 +9,7 @@ import {
   Dimension,
   DraggableType,
   HitAreaName,
+  HitTestAreasNotNull,
   LanguageValueUnset,
   MenuRevealingDurationSeconds,
   MessageAppearDelaySeconds,
@@ -23,9 +24,10 @@ import {
   MessageSchema,
   MessageSwingingSeconds,
   MessageVersion,
-  ModelLocation,
+  ModelInfo,
   ModelLocationNotNull,
   ModelPosition,
+  MotionGroup,
   ThresholdAppRootMini,
 } from "./Constants";
 import { getUiStrings } from "./Localization";
@@ -150,41 +152,37 @@ function filePathToJsonPath(filePath: string): string {
 /**
  *
  */
-export function getModelLocation(fileLocation: string | ModelLocation): ModelLocationNotNull {
-  const emptyObj: ModelLocationNotNull = { jsonPath: "", zipPath: "", texturePaths: [], clip: [], messages: [] };
+function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNull {
+  const hitTest: HitTestAreasNotNull = {
+    head: { name: HitAreaName.Head },
+    body: { name: HitAreaName.Body, group: MotionGroup.TapBody },
+  };
+  const baseObj: ModelLocationNotNull = { jsonPath: "", zipPath: "", messages: [], hitTest: hitTest };
 
   if (typeof fileLocation !== "string") {
-    return Object.assign(emptyObj, fileLocation) as ModelLocationNotNull;
+    fileLocation.hitTest = Object.assign(hitTest, fileLocation.hitTest);
+    return Object.assign(baseObj, fileLocation) as ModelLocationNotNull;
   }
 
   // strip query parameters
   fileLocation = fileLocation.replace(/[?#].*$/, "");
 
   if (fileLocation.endsWith(".model3.json")) {
-    return {
-      jsonPath: fileLocation,
-      zipPath: "",
-      texturePaths: [],
-      clip: [],
-      messages: [],
-    } as ModelLocationNotNull;
+    baseObj.jsonPath = fileLocation;
+    return baseObj;
   }
 
   if (fileLocation.endsWith(".zip")) {
-    return {
-      jsonPath: filePathToJsonPath(fileLocation),
-      zipPath: fileLocation,
-      texturePaths: [],
-      clip: [],
-      messages: [],
-    } as ModelLocationNotNull;
+    baseObj.jsonPath = filePathToJsonPath(fileLocation);
+    baseObj.zipPath = fileLocation;
+    return baseObj;
   }
 
   console.error(
     "File path does not end with .model3.json nor .zip!" +
       " If you want to load the model from online storage, use object notation instead."
   );
-  return emptyObj;
+  return baseObj;
 }
 
 /**
@@ -553,7 +551,7 @@ export class Widget {
     this.messageVisible = !this.messageVisible;
   }
 
-  sayWhenTouched(part: keyof typeof HitAreaName): void {
+  sayWhenTouched(part: string): void {
     if (this.messages == null) return;
 
     const candiddates = this.messages.touch.get(part) ?? [];

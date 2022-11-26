@@ -151,20 +151,24 @@ export type MessagesOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
+type HitTestAreas = { head?: { name: string }; body?: { name?: string; group?: string } };
+export type HitTestAreasNotNull = { head: { name: string }; body: { name: string; group: string } };
+
 /**
  * Indicates where the model is stored and how we should render it.
  */
-export interface ModelLocation {
+export interface ModelInfo {
   /** The file path or URL of the config JSON file of the model. */
   jsonPath: string;
   /** The file path or URL of the archive file which contains the model and its data. */
   zipPath?: string;
-  /** The file paths or URLs of the texture PNG files. */
-  texturePaths?: string[];
-  /**  */
-  clip?: number[];
   /** The messages the model speaks. */
   messages?: MessagesOrUrl;
+  /** Used for hit testing, or collision testing.
+   * @example [{ name: "HeadArea"; as: "Head" }, {...}]
+   * @example [{ name: "HitAreaBody"; group: "BodyTouched"; as: "Body" }, {...}]
+   */
+  hitTest?: HitTestAreas;
 }
 
 /**
@@ -174,14 +178,13 @@ export interface ModelLocation {
 export interface ModelLocationNotNull {
   jsonPath: string;
   zipPath: string;
-  texturePaths: string[];
-  clip: number[];
   messages: MessagesOrUrl;
+  hitTest: HitTestAreasNotNull;
 }
 
 /**  */
 export interface Config {
-  models: Array<string | ModelLocation>;
+  models: Array<string | ModelInfo>;
   useCache?: boolean;
   modelVisible?: boolean;
   messageVisible?: boolean;
@@ -197,7 +200,7 @@ export interface Config {
 }
 
 export interface ConfigNotNull {
-  models: Array<string | ModelLocation>;
+  models: Array<string | ModelInfo>;
   useCache: boolean;
   modelVisible: boolean;
   messageVisible: boolean;
