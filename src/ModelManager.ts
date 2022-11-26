@@ -124,13 +124,23 @@ export class ModelManager extends CubismUserModel {
     this.getRenderer().startUp(GLContext);
   }
 
+  /**
+   * Deletes all old cached files if they have lower version number than given one in their name.
+   */
   protected async deleteOldCaches(): Promise<void> {
     const oldKeys = (await caches.keys())
       .filter((key) => key.startsWith(cacheBucketNameRoot))
       .filter((key) => key < this.cacheBucketName);
+    // noinspection ES6MissingAwait
     oldKeys.forEach(async (key) => await caches.delete(key));
   }
 
+  /**
+   * Returns the ArrayBuffer of the specified file name.
+   * @param fileName A file name you want to get the contents of.
+   * @param _raw Set this True if the file name should not be prefixed with parent directory.
+   * @return {Promise<ArrayBuffer>} An ArrayBuffer represents the content of the file.
+   */
   protected async getBuffer(fileName: string, _raw: boolean = false): Promise<ArrayBuffer> {
     const filePath = _raw ? fileName : `${this.parentDir}/${fileName}`;
     const data = this.contentBufferMap.get(filePath);
@@ -254,7 +264,8 @@ export class ModelManager extends CubismUserModel {
    * @param motionIndex its index number within the motion group
    * @param priority
    * @param callbackOnFinish a callback function called when the motion finished
-   * @return Returns an identifier for the fired motion. This is used as an argument for 'isFinished' which tests whether the indicvidual motion is finished. Returns -1 if failed to start the motion.
+   * @return Returns an identifier for the fired motion. This is used as an argument for 'isFinished' which tests
+   *   whether the indicvidual motion is finished. Returns -1 if failed to start the motion.
    */
   async startMotion(
     group: string,
@@ -265,7 +276,7 @@ export class ModelManager extends CubismUserModel {
     if (priority === Priority.Force) {
       this._motionManager.setReservePriority(priority);
     } else if (!this._motionManager.reserveMotion(priority)) {
-      console.debug(`[APP]can't start motion: ${group} ${motionIndex}`);
+      // console.debug(`[APP]can't start motion: ${group} ${motionIndex}`);
       return InvalidMotionQueueEntryHandleValue;
     }
 
@@ -299,7 +310,8 @@ export class ModelManager extends CubismUserModel {
    * @param group the name of the motion group
    * @param priority
    * @param callbackOnFinish a callback function called when the motion finished
-   * @return Returns an identifier for the fired motion. This is used as an argument for 'isFinished' which tests whether the indicvidual motion is finished. Returns -1 if failed to start the motion.
+   * @return Returns an identifier for the fired motion. This is used as an argument for 'isFinished' which tests
+   *   whether the indicvidual motion is finished. Returns -1 if failed to start the motion.
    */
   async startRandomMotion(
     group: string,
@@ -312,7 +324,7 @@ export class ModelManager extends CubismUserModel {
     return await this.startMotion(group, motionIndex, priority, callbackOnFinish);
   }
 
-  /** テクスチャユニットにテクスチャをロードする */
+  /** load textures onto texture units */
   protected async setupTextures(): Promise<void> {
     const textureCount: number = this.settings.getTextureCount();
 
@@ -376,8 +388,6 @@ export class ModelManager extends CubismUserModel {
   setExpression(expressionName: string): CubismMotionQueueEntryHandle {
     const motion: ACubismMotion = this.expresssionsMap.getValue(expressionName);
     if (motion == null) return -1;
-
-    // console.debug(`[APP]expression: [${expressionName}]`);
 
     return this._expressionManager.startMotionPriority(motion, false, Priority.Force);
   }
