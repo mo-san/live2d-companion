@@ -3,6 +3,8 @@
    ===================== */
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
+export const WorkerUrl = "webgl-worker.js";
+export const CubismCoreUrl = "assets/live2dcubismcore.min.js";
 
 /** Default canvas size. Interpreted as pixels. */
 export const DefaultWidth = 300;

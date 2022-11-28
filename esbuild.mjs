@@ -22,8 +22,11 @@ async function copyAssets() {
 
   // options for esbuild
   const result = await build({
-    entryPoints: ["src/main.ts"],
-    outfile: `${servingRoot}/index.js`,
+    entryPoints: [
+      "src/index.ts",
+      "src/webgl-worker.ts",
+    ],
+    outdir: servingRoot,
     bundle: true,
     charset: "utf8",
     minify: !isDevelopment,

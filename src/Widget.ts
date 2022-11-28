@@ -46,10 +46,9 @@ import {
   elemSwitcher,
   elemToast,
   elemToggleMessage,
-  Time,
+  ModelManagerWorker,
 } from "./index";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
-import { ModelManager } from "./webgl-worker";
 import {
   clsAppRootMini,
   clsCredit,
@@ -63,72 +62,6 @@ import {
   clsToastVisible,
   clsToggleMessage,
 } from "./Styles";
-
-// ------------------------------
-// Language support
-// ------------------------------
-function fillUiWithUserLanguage(): void {
-  const uiStrings = getUiStrings(getUserPrefLanguages()[0]);
-  (elemSwitcher.querySelector("p") as HTMLElement).innerText = uiStrings[clsSwitcher];
-  (elemHider.querySelector("p") as HTMLElement).innerText = uiStrings[clsHider];
-  (elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOff;
-  (elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
-  (elemCredit.querySelector("p") as HTMLElement).innerText = uiStrings[clsCredit];
-  (elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
-}
-
-function addEventListenerToLanguageOptions(): void {
-  elemToast.addEventListener("animationend", () => elemToast.classList.remove(clsToastVisible));
-
-  elemLanguageOptions.addEventListener("change", (event) => {
-    const language = (event.target as HTMLSelectElement).value;
-
-    if (isLocalStorageAvailable()) {
-      if (language === LanguageValueUnset) {
-        localStorage.removeItem(MessageLanguageStorageName);
-      } else {
-        localStorage.setItem(MessageLanguageStorageName, language);
-      }
-      elemToast.classList.add(clsToastVisible);
-    }
-
-    fillUiWithUserLanguage();
-  });
-}
-
-function insertLanguageOptions(yamlKeys: string[]): void {
-  const result: string[] = [];
-  const categories = [MessageCategoryGeneral, MessageCategoryDatetime, MessageCategoryTouch];
-
-  yamlKeys = yamlKeys.filter((key) => key !== MessageVersion).sort();
-  if (yamlKeys.includes(MessageLanguageDefault)) {
-    result.push(MessageLanguageDefault);
-    result.push(...yamlKeys.filter((key) => key !== MessageLanguageDefault && !categories.includes(key)));
-  } else if (
-    yamlKeys.includes(MessageCategoryGeneral) ||
-    yamlKeys.includes(MessageCategoryDatetime) ||
-    yamlKeys.includes(MessageCategoryTouch)
-  ) {
-    result.push(MessageLanguageDefault);
-    result.push(...yamlKeys.filter((key) => !categories.includes(key)));
-  }
-
-  for (let i = 0; i < result.length; i++) {
-    if (result[i].includes("-") && result[i].toLowerCase().replace("-", "_") === result[i + 1].toLowerCase()) {
-      result.splice(i + 1, 1);
-    }
-  }
-
-  const selectedKey = localStorage.getItem(MessageLanguageStorageName) ?? "";
-  elemLanguageOptions.insertAdjacentHTML(
-    "beforeend",
-    `<option value="${LanguageValueUnset}" ${result.includes(selectedKey) ? "selected" : ""}>(Unset)</option>`
-  );
-  for (const key of result) {
-    const selected = key === selectedKey ? "selected" : "";
-    elemLanguageOptions.insertAdjacentHTML("beforeend", `<option value="${key}" ${selected}>${key}</option>`);
-  }
-}
 
 // ------------------------------
 // ------------------------------
@@ -185,13 +118,16 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
   return baseObj;
 }
 
+function clamp(target: number, min: number, max: number): number {
+  return Math.min(Math.max(min, target), max);
+}
+
 /**
  * Manages widget itself.
  */
 export class Widget {
   models: ModelLocationNotNull[];
   currentModelIndex: number;
-  modelManager?: ModelManager;
   modelPosition: keyof typeof ModelPosition;
   slideInFrom: keyof typeof Dimension;
   modelVisible: boolean;
@@ -206,7 +142,7 @@ export class Widget {
   version: string;
   private pointerCoord: { x: number; y: number } = { x: 0, y: 0 };
   private baseWeightArray: number[] = [];
-  deviceToScreenMatrix: CubismMatrix44;
+  deviceToScreenMatrix = new CubismMatrix44();
   viewMatrix = new CubismViewMatrix();
   /** A number representing the handler for 'setTimeout' or 'setInterval' */
   MessageTimer: number = 0;
@@ -231,15 +167,6 @@ export class Widget {
       elemRevealer.style.display = "grid";
     }
 
-    this.slideInFrom = config.slideInFrom;
-    this.modelDistance = {
-      x: Math.max(0, config.modelDistance.x),
-      y: Math.max(0, config.modelDistance.y),
-    };
-    this.modelCoordInitial = this.calcInitialAppCoord();
-    Object.assign(elemAppRoot.style, this.calcInitialPosition());
-    this.deviceToScreenMatrix = this.refreshViewpointMatrix(this.modelCoordInitial);
-
     this._messages = config.messages;
     this.messagePosition = config.messagePosition.toLowerCase() as keyof typeof MessagePosition;
     this.messageVisible = config.messageVisible;
@@ -247,13 +174,30 @@ export class Widget {
     this.useCache = config.useCache;
     this.draggable = config.draggable;
 
-    fillUiWithUserLanguage();
+    this.fillUiWithUserLanguage();
+
+    this.slideInFrom = config.slideInFrom;
+    this.modelDistance = {
+      x: Math.max(0, config.modelDistance.x),
+      y: Math.max(0, config.modelDistance.y),
+    };
+    this.modelCoordInitial = this.calcInitialAppCoord();
+    Object.assign(elemAppRoot.style, this.calcInitialPosition());
+  }
+
+  init(releaseInstance: boolean = false) {
+    const { clientWidth: width, clientHeight: height } = elemAppRoot;
+
+    ModelManagerWorker.postMessage([
+      { task: "resizeCanvas", args: { width, height } },
+      releaseInstance && { task: "release" }, // release resources
+      { task: "load", args: { model: this.models[this.currentModelIndex], version: this.version } },
+    ]);
   }
 
   async main(): Promise<void> {
-    await this.loadModel(this.currentModelIndex);
-
     this.messages = await this.loadMesseges(this._messages);
+    elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
 
     if (this.modelVisible) {
@@ -264,18 +208,18 @@ export class Widget {
     }
     this.registerEvents();
 
-    await this.loop(0);
+    ModelManagerWorker.postMessage([{ task: "loop", args: {} }]);
   }
 
   registerEvents(): void {
-    window.addEventListener("resize", (event) => this.onWindowResize(event));
+    window.addEventListener("resize", (_event) => this.onWindowResize());
     document.addEventListener("pointermove", (event) => this.onPointerMove(event));
     document.addEventListener("pointerleave", (event) => this.onPointerLeave(event));
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
     elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
 
     elemMenuButton.addEventListener("pointerup", (event) => this.toggleMenu(event));
-    elemSwitcher.addEventListener("pointerup", async (event) => await this.switchModel(event));
+    elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
     elemHider.addEventListener("pointerup", (event) => this.disappear(event));
     elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
     elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
@@ -289,35 +233,20 @@ export class Widget {
     if (width < ThresholdAppRootMini || height < ThresholdAppRootMini) {
       elemAppRoot.classList.add(clsAppRootMini);
     }
-    width = Math.min(width, window.innerWidth);
-    height = Math.min(height, window.innerHeight);
+    width = clamp(width, 0, window.innerWidth);
+    height = clamp(height, 0, window.innerHeight);
     elemAppRoot.style.width = `${width}px`;
     elemAppRoot.style.height = `${height}px`;
-
-    this.modelManager?.resizeCanvas(elemAppRoot.clientWidth, elemAppRoot.clientHeight);
   }
 
-  protected async loadModel(modelIndex: number): Promise<void> {
-    const model = this.models[modelIndex];
-    if (model == null || model.jsonPath === "") return;
-
-    this.modelManager = await ModelManager.init(model, this.version);
-    await this.modelManager.load();
-  }
-
-  async switchModel(event: PointerEvent): Promise<void> {
+  switchModel(event: PointerEvent): void {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event.button !== 0) return;
 
     this.toggleMenu(event);
     this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
 
-    // release resources
-    this.modelManager?.release();
-    this.modelManager = undefined;
-
-    await this.loadModel(this.currentModelIndex);
-    this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+    this.init(true);
   }
 
   appear(event?: PointerEvent): void {
@@ -378,9 +307,11 @@ export class Widget {
     });
   }
 
-  onWindowResize(_event: UIEvent): void {
-    this.resizeApp(elemAppRoot.getBoundingClientRect());
-    this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+  onWindowResize(_event?: UIEvent): void {
+    const { clientWidth: width, clientHeight: height } = elemAppRoot;
+
+    ModelManagerWorker.postMessage([{ task: "resizeCanvas", args: { width, height } }]);
+    this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
     this.bringBackAppIntoWindow();
   }
 
@@ -415,8 +346,10 @@ export class Widget {
     const viewX: number = this.transformViewX(event.x);
     const viewY: number = this.transformViewY(event.y);
 
-    this.modelManager?.setDragging(viewX, viewY);
-    void this.modelManager?.touchAt(viewX, viewY, (part) => this.sayWhenTouched(part));
+    ModelManagerWorker.postMessage([
+      { task: "look", args: { viewX, viewY } },
+      { task: "touch", args: { viewX, viewY } },
+    ]);
 
     if (!elemAppRoot.classList.contains(clsDragging)) return;
 
@@ -434,39 +367,14 @@ export class Widget {
   }
 
   onPointerLeave(_event: PointerEvent): void {
-    this.modelManager?.setDragging(0, 0);
+    ModelManagerWorker.postMessage([{ task: "look", args: { viewX: 0, viewY: 0 } }]);
   }
 
   onPointerUp(_event: PointerEvent): void {
     if (elemAppRoot.classList.contains(clsDragging)) {
       elemAppRoot.classList.remove(clsDragging);
-      this.deviceToScreenMatrix = this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+      this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
     }
-  }
-
-  async loop(time: number): Promise<void> {
-    // prepare the next frame
-    requestAnimationFrame(async (time) => await this.loop(time));
-
-    // proceed time
-    Time.currentFrame = time;
-    Time.deltaTime = (Time.currentFrame - Time.lastFrame) / 1000;
-    Time.lastFrame = Time.currentFrame;
-
-    this.modelManager?.flushWebglContext();
-
-    const projection: CubismMatrix44 = new CubismMatrix44();
-
-    const { width, height } = CANVAS;
-    if ((this.modelManager?.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
-      // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
-      this.modelManager?.getModelMatrix().setWidth(2.0);
-      projection.scale(1.0, width / height);
-    } else {
-      projection.scale(height / width, 1.0);
-    }
-    this.modelManager?.draw(projection, { width, height });
-    await this.modelManager?.update(Time.deltaTime);
   }
 
   /** Converts X position in device coordinates into the viewport coordinates */
@@ -488,8 +396,8 @@ export class Widget {
    * @param x X position in the device coordinates (e.g. 0 ~ 1920)
    * @param y Y position in the device coordinates (e.g. 0 ~ 1080)
    */
-  refreshViewpointMatrix({ x, y }: { x: number; y: number }): CubismMatrix44 {
-    const { width, height } = CANVAS;
+  refreshViewpointMatrix({ x, y }: { x: number; y: number }): void {
+    const { width, height } = elemAppRoot.getBoundingClientRect();
 
     const deviceToScreenMatrix = new CubismMatrix44();
     deviceToScreenMatrix.scale(2 / width, -2 / height);
@@ -498,7 +406,7 @@ export class Widget {
     // Shifts the camera position to the position of the canvas
     deviceToScreenMatrix.translateRelative(-x, -y);
 
-    return deviceToScreenMatrix;
+    this.deviceToScreenMatrix = deviceToScreenMatrix;
   }
 
   async loadMesseges(messagesOrUrl: string | string[]): Promise<MessageSchema> {
@@ -511,14 +419,13 @@ export class Widget {
     }
 
     const { keys, messages } = await loadMessagesFromYaml(messagesOrUrl);
-    insertLanguageOptions(keys);
-    addEventListenerToLanguageOptions();
+    this.insertLanguageOptions(keys);
+    this.addEventListenerToLanguageOptions();
     return messages;
   }
 
   startSpeaking(): void {
     this.swingMessage();
-    elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
 
     this.sayRandomWord();
     this.MessageTimer = setInterval(() => this.sayRandomWord(), MessageDurationSeconds * 1000);
@@ -534,19 +441,18 @@ export class Widget {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event.button !== 0) return;
 
-    const uiStrings = getUiStrings(getUserPrefLanguages()[0]);
+    this.messageVisible = !this.messageVisible;
+    this.fillUiWithUserLanguage();
     if (this.messageVisible) {
-      elemToggleMessage.innerText = uiStrings[clsToggleMessage].turnOff;
       this.stopSpeaking();
     } else {
-      elemToggleMessage.innerText = uiStrings[clsToggleMessage].turnOn;
       this.startSpeaking();
     }
-    this.messageVisible = !this.messageVisible;
   }
 
   sayWhenTouched(part: string): void {
     if (this.messages == null) return;
+    if (!this.messageVisible) return;
 
     const candiddates = this.messages.touch.get(part) ?? [];
     const rand = Math.floor(Math.random() * candiddates.length);
@@ -646,10 +552,6 @@ export class Widget {
   }
 
   calcInitialAppCoord(): { x: number; y: number } {
-    function clamp(target: number, min: number, max: number): number {
-      return Math.min(Math.max(min, target), max);
-    }
-
     const { width, height } = elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     let { x: xDistance, y: yDistance } = this.modelDistance;
@@ -774,5 +676,75 @@ export class Widget {
     };
 
     return elemMessage.animate(keyframes, options);
+  }
+
+  // ------------------------------
+  // Language support
+  // ------------------------------
+  fillUiWithUserLanguage(): void {
+    const uiStrings = getUiStrings(getUserPrefLanguages()[0]);
+    (elemSwitcher.querySelector("p") as HTMLElement).innerText = uiStrings[clsSwitcher];
+    (elemHider.querySelector("p") as HTMLElement).innerText = uiStrings[clsHider];
+    if (this.messageVisible) {
+      (elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOff;
+    } else {
+      (elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOn;
+    }
+    (elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
+    (elemCredit.querySelector("p") as HTMLElement).innerText = uiStrings[clsCredit];
+    (elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
+  }
+
+  addEventListenerToLanguageOptions(): void {
+    elemToast.addEventListener("animationend", () => elemToast.classList.remove(clsToastVisible));
+
+    elemLanguageOptions.addEventListener("change", (event) => {
+      const language = (event.target as HTMLSelectElement).value;
+
+      if (isLocalStorageAvailable()) {
+        if (language === LanguageValueUnset) {
+          localStorage.removeItem(MessageLanguageStorageName);
+        } else {
+          localStorage.setItem(MessageLanguageStorageName, language);
+        }
+        elemToast.classList.add(clsToastVisible);
+      }
+
+      this.fillUiWithUserLanguage();
+    });
+  }
+
+  insertLanguageOptions(yamlKeys: string[]): void {
+    const result: string[] = [];
+    const categories = [MessageCategoryGeneral, MessageCategoryDatetime, MessageCategoryTouch];
+
+    yamlKeys = yamlKeys.filter((key) => key !== MessageVersion).sort();
+    if (yamlKeys.includes(MessageLanguageDefault)) {
+      result.push(MessageLanguageDefault);
+      result.push(...yamlKeys.filter((key) => key !== MessageLanguageDefault && !categories.includes(key)));
+    } else if (
+      yamlKeys.includes(MessageCategoryGeneral) ||
+      yamlKeys.includes(MessageCategoryDatetime) ||
+      yamlKeys.includes(MessageCategoryTouch)
+    ) {
+      result.push(MessageLanguageDefault);
+      result.push(...yamlKeys.filter((key) => !categories.includes(key)));
+    }
+
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].includes("-") && result[i].toLowerCase().replace("-", "_") === result[i + 1].toLowerCase()) {
+        result.splice(i + 1, 1);
+      }
+    }
+
+    const selectedKey = localStorage.getItem(MessageLanguageStorageName) ?? "";
+    elemLanguageOptions.insertAdjacentHTML(
+      "beforeend",
+      `<option value="${LanguageValueUnset}" ${result.includes(selectedKey) ? "selected" : ""}>(Unset)</option>`
+    );
+    for (const key of result) {
+      const selected = key === selectedKey ? "selected" : "";
+      elemLanguageOptions.insertAdjacentHTML("beforeend", `<option value="${key}" ${selected}>${key}</option>`);
+    }
   }
 }

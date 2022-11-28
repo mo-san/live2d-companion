@@ -1,5 +1,4 @@
-import { CubismFramework, LogLevel } from "@framework/live2dcubismframework";
-import { Config } from "./Constants";
+import { Config, WorkerUrl } from "./Constants";
 import {
   clsAppRoot,
   clsContent,
@@ -55,7 +54,8 @@ document.body.insertAdjacentHTML(
 export const elemAppRoot = document.querySelector(`.${clsAppRoot}`) as HTMLDivElement;
 
 export const CANVAS = elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
-export const GLContext = CANVAS.getContext("webgl") as WebGLRenderingContext;
+
+export const ModelManagerWorker = new Worker(WorkerUrl);
 
 export const elemContent = elemAppRoot.querySelector(`.${clsContent}`) as HTMLDivElement;
 export const elemMessage = elemAppRoot.querySelector(`.${clsMessage}`) as HTMLDivElement;
@@ -70,19 +70,41 @@ export const elemLanguageOptions = elemAppRoot.querySelector(`.${clsLanguage} se
 export const elemToast = elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
 export const elemRevealer = elemAppRoot.querySelector(`.${clsRevealer}`) as HTMLAnchorElement;
 
-export const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
-  currentFrame: Date.now(),
-  lastFrame: 0,
-  deltaTime: 0,
-};
-
 function companion(options: Config): void {
-  CubismFramework.startUp({
-    logFunction: (_message: string) => {},
-    loggingLevel: LogLevel.LogLevel_Off,
-  });
-  CubismFramework.initialize();
-  void new Widget(options).main();
+  const widget = new Widget(options);
+
+  const OffscreenCanvas = CANVAS.transferControlToOffscreen();
+
+  ModelManagerWorker.onmessage = async (event: MessageEvent) => {
+    const { task, args } = event.data as { task: string; args: any };
+
+    if (task === "OffscreenCanvas") {
+      widget.init();
+      return;
+    }
+    // if (task === "resizeCanvas") {
+    //   return;
+    // }
+    if (task === "load") {
+      widget.refreshViewpointMatrix(widget.modelCoordInitial);
+      widget.bringBackAppIntoWindow();
+      widget.findHeadArea();
+      await widget.main();
+      return;
+    }
+    if (task === "touch") {
+      widget.sayWhenTouched(args.part);
+      return;
+    }
+    // if (task === "release") {
+    //   return;
+    // }
+    // if (task === "loop") {
+    //   return;
+    // }
+  };
+
+  ModelManagerWorker.postMessage([{ task: "OffscreenCanvas", args: { canvas: OffscreenCanvas } }], [OffscreenCanvas]);
 }
 
 declare global {

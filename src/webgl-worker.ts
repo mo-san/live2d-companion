@@ -3,7 +3,7 @@ import { CubismModelSettingJson } from "@framework/cubismmodelsettingjson";
 import { BreathParameterData, CubismBreath } from "@framework/effect/cubismbreath";
 import { CubismEyeBlink } from "@framework/effect/cubismeyeblink";
 import { CubismId, CubismIdHandle } from "@framework/id/cubismid";
-import { CubismFramework } from "@framework/live2dcubismframework";
+import { CubismFramework, LogLevel } from "@framework/live2dcubismframework";
 import { CubismMatrix44 } from "@framework/math/cubismmatrix44";
 import { CubismUserModel } from "@framework/model/cubismusermodel";
 import { ACubismMotion, FinishedMotionCallback } from "@framework/motion/acubismmotion";
@@ -15,8 +15,62 @@ import {
 import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
-import { cacheBucketNameRoot, HitTestAreasNotNull, ModelLocationNotNull, MotionGroup, Priority } from "./Constants";
-import { CANVAS } from "./index";
+import {
+  cacheBucketNameRoot,
+  CubismCoreUrl,
+  HitTestAreasNotNull,
+  ModelLocationNotNull,
+  MotionGroup,
+  Priority,
+} from "./Constants";
+
+// @ts-ignore
+self.importScripts(CubismCoreUrl);
+
+let CANVAS: OffscreenCanvas;
+let modelManager: ModelManager | undefined;
+const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
+  currentFrame: Date.now(),
+  lastFrame: 0,
+  deltaTime: 0,
+};
+
+self.onmessage = async ({ data }: MessageEvent) => {
+  for (const { task, args } of data as { task: string; args: any }[]) {
+    if (task === "OffscreenCanvas") {
+      CANVAS = args.canvas;
+      self.postMessage({ task });
+      continue;
+    }
+    if (task === "resizeCanvas") {
+      resizeCanvas(args.width, args.height);
+      continue;
+    }
+    if (task === "load") {
+      modelManager = await ModelManager.init(args.model, args.version);
+      await modelManager.load();
+      self.postMessage({ task });
+      continue;
+    }
+    if (task === "look") {
+      modelManager?.setDragging(args.viewX, args.viewY);
+      continue;
+    }
+    if (task === "touch") {
+      const part = await modelManager?.touchAt(args.viewX, args.viewY);
+      part && self.postMessage({ task, args: { part: part } });
+      continue;
+    }
+    if (task === "release") {
+      modelManager?.release();
+      modelManager = undefined;
+      continue;
+    }
+    if (task === "loop") {
+      await modelManager?.loop(0);
+    }
+  }
+};
 
 /** find the longest common path element */
 function findLongestCommonPath(mapping: Map<string, ArrayBuffer>): string {
@@ -37,6 +91,11 @@ function findLongestCommonPath(mapping: Map<string, ArrayBuffer>): string {
 async function unzip(zipFile: Uint8Array): Promise<Map<string, Uint8Array>> {
   const unzipped = unzipSync(zipFile, { filter: (file) => !file.name.endsWith("/") });
   return new Map<string, Uint8Array>(Object.entries(unzipped));
+}
+
+function resizeCanvas(width: number, height: number): void {
+  CANVAS.width = width;
+  CANVAS.height = height;
 }
 
 export class ModelManager extends CubismUserModel {
@@ -73,6 +132,12 @@ export class ModelManager extends CubismUserModel {
    * @param version the version of the model(s) to be used for cache deletion
    */
   static async init({ jsonPath, zipPath, hitTest }: ModelLocationNotNull, version: string): Promise<ModelManager> {
+    CubismFramework.startUp({
+      logFunction: (_message: string) => {},
+      loggingLevel: LogLevel.LogLevel_Off,
+    });
+    CubismFramework.initialize();
+
     const modelManager = new ModelManager();
     modelManager.cacheBucketName = `${cacheBucketNameRoot}-v${version}`;
     await modelManager.deleteOldCaches();
@@ -213,14 +278,6 @@ export class ModelManager extends CubismUserModel {
     super.loadPose(buffer, buffer.byteLength);
   }
 
-  // protected async loadUserDataImpl(): Promise<void> {
-  //   const fileName = this.settings.getUserDataFile();
-  //   if (fileName === "") return;
-  //
-  //   const buffer = await this.getBuffer(fileName);
-  //   super.loadUserData(buffer, buffer.byteLength);
-  // }
-
   protected setupEyeblinking(): void {
     if (this.settings.getEyeBlinkParameterCount() < 1) return;
     this._eyeBlink = CubismEyeBlink.create(this.settings);
@@ -346,7 +403,7 @@ export class ModelManager extends CubismUserModel {
    * @return null if failed to load image information
    */
   protected async createTextureFromPngFile(fileName: string, i: number): Promise<void> {
-    const textureFrom = (img: HTMLImageElement): WebGLTexture => {
+    const textureFrom = (img: ImageBitmap): WebGLTexture => {
       // Create a new empty texture
       const texture = this.glContext.createTexture() as WebGLTexture;
 
@@ -381,14 +438,7 @@ export class ModelManager extends CubismUserModel {
 
     const buffer = await this.getBuffer(fileName);
     const blob = new Blob([new Uint8Array(buffer)], { type: "image/png" });
-    const imageUrl = URL.createObjectURL(blob);
-
-    const img = new Image();
-    img.onload = () => {
-      this.getRenderer().bindTexture(i, textureFrom(img));
-      URL.revokeObjectURL(imageUrl); // release the reference to avoid the memory leak
-    };
-    img.src = imageUrl;
+    this.getRenderer().bindTexture(i, textureFrom(await createImageBitmap(blob)));
   }
 
   setExpression(expressionName: string): CubismMotionQueueEntryHandle {
@@ -416,9 +466,8 @@ export class ModelManager extends CubismUserModel {
    * Tests whether the pointer is above the body parts (currently supports "Head" and "Body").
    * @param x X position in the viewport coordinate (-1 ~ 1)
    * @param y Y position in the viewport coordinate (-1 ~ 1)
-   * @param callback if given, this will be called after setting a facial expression or before setting a motion.
    */
-  async touchAt(x: number, y: number, callback?: (part: string) => void): Promise<void> {
+  async touchAt(x: number, y: number): Promise<string | undefined> {
     // do nothing while a motion is still active
     if (this.motionHandle != null) return;
 
@@ -427,7 +476,6 @@ export class ModelManager extends CubismUserModel {
 
     if (this.didHitIn(head.name, x, y)) {
       this.motionHandle = this.setRandomExpression();
-      if (callback != null) callback(head.name);
 
       // reset to the default expression
       setTimeout(() => {
@@ -435,13 +483,14 @@ export class ModelManager extends CubismUserModel {
         if (name != null) this.setExpression(name);
         this.motionHandle = null;
       }, 2000);
-      return;
+      return head.name;
     }
 
     if (this.didHitIn(body.name, x, y)) {
-      if (callback != null) callback(body.name);
       this.motionHandle = await this.startRandomMotion(body.group, Priority.Normal, () => (this.motionHandle = null));
+      return body.name;
     }
+    return;
   }
 
   didHitIn(hitArenaName: string, x: number, y: number): boolean {
@@ -534,6 +583,31 @@ export class ModelManager extends CubismUserModel {
     this._pose?.updateParameters(this._model, deltaTime);
   }
 
+  async loop(time: number): Promise<void> {
+    // prepare the next frame
+    requestAnimationFrame(async (time) => await this.loop(time));
+
+    // proceed time
+    Time.currentFrame = time;
+    Time.deltaTime = (Time.currentFrame - Time.lastFrame) / 1000;
+    Time.lastFrame = Time.currentFrame;
+
+    this.flushWebglContext();
+
+    const projection: CubismMatrix44 = new CubismMatrix44();
+
+    const { width, height } = CANVAS;
+    if ((this.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
+      // Calculate the scale by the horizontal length of the model when displaying a horizontally long model in a portrait window.
+      this.getModelMatrix().setWidth(2.0);
+      projection.scale(1.0, width / height);
+    } else {
+      projection.scale(height / width, 1.0);
+    }
+    this.draw(projection, { width, height });
+    await this.update(Time.deltaTime);
+  }
+
   draw(matrix: CubismMatrix44, { width, height }: { width: number; height: number }): void {
     const renderer = super.getRenderer();
 
@@ -544,10 +618,5 @@ export class ModelManager extends CubismUserModel {
     const viewport = [0, 0, width, height];
     renderer.setRenderState(frameBuffer, viewport);
     renderer.drawModel();
-  }
-
-  resizeCanvas(width: number, height: number): void {
-    this.glContext.canvas.width = width;
-    this.glContext.canvas.height = height;
   }
 }
