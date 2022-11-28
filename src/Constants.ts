@@ -3,6 +3,7 @@
    ===================== */
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
+// export const CubismCoreUrl = "assets/live2dcubismcore.min.js";
 
 /** Default canvas size. Interpreted as pixels. */
 export const DefaultWidth = 300;
@@ -151,8 +152,8 @@ export type MessagesOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
-type HitTestAreas = { head?: { name: string }; body?: { name?: string; group?: string } };
-export type HitTestAreasNotNull = { head: { name: string }; body: { name: string; group: string } };
+interface HitTestAreas { head?: { name: string }; body?: { name?: string; group?: string } }
+export interface HitTestAreasNotNull { head: { name: string }; body: { name: string; group: string } }
 
 /**
  * Indicates where the model is stored and how we should render it.
