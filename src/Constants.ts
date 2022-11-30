@@ -152,8 +152,14 @@ export type MessagesOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
-interface HitTestAreas { head?: { name: string }; body?: { name?: string; group?: string } }
-export interface HitTestAreasNotNull { head: { name: string }; body: { name: string; group: string } }
+interface HitTestAreas {
+  head?: { name: string };
+  body?: { name?: string; group?: string };
+}
+export interface HitTestAreasNotNull {
+  head: { name: string };
+  body: { name: string; group: string };
+}
 
 /**
  * Indicates where the model is stored and how we should render it.
