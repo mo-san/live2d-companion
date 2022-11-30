@@ -88,7 +88,6 @@ function companion(options: Config): void {
     if (task === "load") {
       widget.refreshViewpointMatrix(widget.modelCoordInitial);
       widget.bringBackAppIntoWindow();
-      widget.findHeadArea();
       await widget.main();
       return;
     }

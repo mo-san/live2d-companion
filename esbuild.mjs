@@ -1,12 +1,12 @@
 import { analyzeMetafile, build } from "esbuild";
 import { copy, emptyDir } from "fs-extra";
 import serve, { error as logError, log } from "create-serve";
-import browserslistToEsbuild from 'browserslist-to-esbuild'
+import browserslistToEsbuild from "browserslist-to-esbuild";
 
 const watchChanges = process.argv.slice(2).includes("--watch");
 const doAnalysis = process.env.MODE === "analyze";
 const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
-const servingRoot = "dist";
+const servingRoot = "dist/offscreen";
 const servingPort = 5173;
 
 async function copyAssets() {
@@ -18,7 +18,7 @@ async function copyAssets() {
 
 (async () => {
   await emptyDir(servingRoot);
-  await copyAssets();
+  isDevelopment && (await copyAssets());
 
   // options for esbuild
   const result = await build({
@@ -31,7 +31,7 @@ async function copyAssets() {
     charset: "utf8",
     minify: !isDevelopment,
     platform: "browser",
-    sourcemap: true,
+    sourcemap: isDevelopment,
     metafile: doAnalysis,
     target: browserslistToEsbuild(),
     tsconfig: "tsconfig.json",

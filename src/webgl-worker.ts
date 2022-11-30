@@ -516,7 +516,7 @@ export class ModelManager extends CubismUserModel {
     this._model.update();
   }
 
-  addParameterValueById(name: string, value: number) {
+  addParameterValueById(name: string, value: number): void {
     return this._model.addParameterValueById(CubismFramework.getIdManager().getId(name), value);
   }
 

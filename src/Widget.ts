@@ -31,6 +31,20 @@ import {
   ThresholdAppRootMini,
 } from "./Constants";
 import { getUiStrings } from "./Localization";
+import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
+import {
+  clsAppRootMini,
+  clsCredit,
+  clsDragging,
+  clsHider,
+  clsLanguage,
+  clsMessage,
+  clsMessageVisible,
+  clsRevealer,
+  clsSwitcher,
+  clsToastVisible,
+  clsToggleMessage,
+} from "./Styles";
 import {
   CANVAS,
   elemAppRoot,
@@ -48,20 +62,6 @@ import {
   elemToggleMessage,
   ModelManagerWorker,
 } from "./index";
-import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
-import {
-  clsAppRootMini,
-  clsCredit,
-  clsDragging,
-  clsHider,
-  clsLanguage,
-  clsMessage,
-  clsMessageVisible,
-  clsRevealer,
-  clsSwitcher,
-  clsToastVisible,
-  clsToggleMessage,
-} from "./Styles";
 
 // ------------------------------
 // ------------------------------
@@ -90,7 +90,7 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
     head: { name: HitAreaName.Head },
     body: { name: HitAreaName.Body, group: MotionGroup.TapBody },
   };
-  const baseObj: ModelLocationNotNull = { jsonPath: "", zipPath: "", messages: [], hitTest: hitTest };
+  const baseObj: ModelLocationNotNull = { jsonPath: "", zipPath: "", messages: [], hitTest };
 
   if (typeof fileLocation !== "string") {
     fileLocation.hitTest = Object.assign(hitTest, fileLocation.hitTest);
