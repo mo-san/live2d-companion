@@ -1,28 +1,23 @@
 import { analyzeMetafile, build } from "esbuild";
-import { copy, emptyDir } from "fs-extra";
+import { emptyDir } from "fs-extra";
 import serve, { error as logError, log } from "create-serve";
 import browserslistToEsbuild from "browserslist-to-esbuild";
+import { version } from "./package.json";
 
 const watchChanges = process.argv.slice(2).includes("--watch");
 const doAnalysis = process.env.MODE === "analyze";
 const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
-const servingRoot = "dist/offscreen";
+const servingRoot = "dist";
 const servingPort = 5173;
-
-async function copyAssets() {
-  [
-    ["index.html", `${servingRoot}/index.html`],
-    ["assets", `${servingRoot}/assets`],
-  ].map(async ([src, dest]) => await copy(src, dest));
-}
 
 (async () => {
   await emptyDir(servingRoot);
-  isDevelopment && (await copyAssets());
 
   // options for esbuild
   const result = await build({
+    // prettier-ignore
     entryPoints: [
+      "src/loader.js",
       "src/index.ts",
       "src/webgl-worker.ts",
     ],
@@ -42,6 +37,11 @@ async function copyAssets() {
         error ? logError("× Failed") : log(`[${new Date().toLocaleString()}] ✓ Updated`);
       },
     },
+    define: {
+      ESBUILD_DEFINE_PATH: isDevelopment
+        ? servingRoot
+        : `https://cdn.jsdelivr.net/gh/mo-san/live2d-companion@${version}/dist/loader.min.js`,
+    },
   });
 
   if (doAnalysis) log(await analyzeMetafile(result.metafile));
@@ -50,6 +50,6 @@ async function copyAssets() {
   watchChanges &&
     serve.start({
       port: servingPort,
-      root: `${servingRoot}`,
+      root: servingRoot,
     });
 })();
