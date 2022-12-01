@@ -31,7 +31,7 @@ export const clsToastVisible = `${clsToast}__visible` as const;
 export const clsRevealer = `${clsAppRoot}__reveal` as const;
 
 /** The long string of the CSS which is applied to the app. */
-export const CssString = `<style>
+const CssString = `<style>
 .${clsAppRoot} {
   --msg-bgcolor: rgba(236, 217, 188, 1);
   --msg-line-height: 1.2;
@@ -366,3 +366,9 @@ export const CssString = `<style>
   text-shadow: -8px 8px 0px var(--revealer-text-shadow-color);
 }
 </style>`;
+
+export function addStyleIfNotExists(): void {
+  if (document.querySelector(`.${clsAppRoot}`) == null) {
+    document.head.insertAdjacentHTML("beforeend", CssString);
+  }
+}

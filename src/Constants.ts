@@ -1,10 +1,14 @@
 /* =====================
  * Configurations for the widget itself
    ===================== */
+export const ErrorIncompatible = `[Live2D-Companion] This browser does not support APIs for the app to run. Please consider using another newer browser.`;
+export const ErrorInvalidPath = `[Live2D-Companion] File path does not end with .model3.json nor .zip! If you want to load the model from online storage, use object notation instead.`;
+export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
+
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
 export const WorkerUrl = "webgl-worker.js";
-export const CubismCoreUrl = "assets/live2dcubismcore.min.js";
+export const CubismCoreUrl = "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js";
 
 /** Default canvas size. Interpreted as pixels. */
 export const DefaultWidth = 300;
@@ -153,8 +157,14 @@ export type MessagesOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
-type HitTestAreas = { head?: { name: string }; body?: { name?: string; group?: string } };
-export type HitTestAreasNotNull = { head: { name: string }; body: { name: string; group: string } };
+interface HitTestAreas {
+  head?: { name: string };
+  body?: { name?: string; group?: string };
+}
+export interface HitTestAreasNotNull {
+  head: { name: string };
+  body: { name: string; group: string };
+}
 
 /**
  * Indicates where the model is stored and how we should render it.
