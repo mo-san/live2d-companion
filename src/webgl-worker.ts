@@ -24,7 +24,7 @@ import {
   Priority,
 } from "./Constants";
 
-// @ts-ignore
+// @ts-expect-error
 self.importScripts(CubismCoreUrl);
 
 let CANVAS: OffscreenCanvas;
@@ -36,7 +36,7 @@ const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
 };
 
 self.onmessage = async ({ data }: MessageEvent) => {
-  for (const { task, args } of data as { task: string; args: any }[]) {
+  for (const { task, args } of data as Array<{ task: string; args: any }>) {
     if (task === "OffscreenCanvas") {
       CANVAS = args.canvas;
       self.postMessage({ task });
@@ -58,7 +58,7 @@ self.onmessage = async ({ data }: MessageEvent) => {
     }
     if (task === "touch") {
       const part = await modelManager?.touchAt(args.viewX, args.viewY);
-      part && self.postMessage({ task, args: { part: part } });
+      if (part != null) self.postMessage({ task, args: { part } });
       continue;
     }
     if (task === "release") {

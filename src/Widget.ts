@@ -217,8 +217,8 @@ export class Widget {
     Object.assign(this.elemAppRoot.style, this.calcInitialPosition());
   }
 
-  init(releaseInstance: boolean = false) {
-    const { clientWidth: width, clientHeight: height } = elemAppRoot;
+  init(releaseInstance: boolean = false): void {
+    const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
 
     ModelManagerWorker.postMessage([
       { task: "resizeCanvas", args: { width, height } },
