@@ -47,11 +47,6 @@ function companion(options: Config): void {
   ModelManagerWorker.postMessage([{ task: "OffscreenCanvas", args: { canvas: OffscreenCanvas } }], [OffscreenCanvas]);
 }
 
-declare global {
-  // noinspection JSUnusedGlobalSymbols
-  interface Window {
-    companion: (options: Config) => void;
-  }
-}
+declare const companionOption: Config;
 
-window.companion = companion;
+companion(companionOption);
