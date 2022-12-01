@@ -23,7 +23,7 @@ import {
   MotionGroup,
   Priority,
 } from "./Constants";
-import { CANVAS } from "./index";
+import { clsAppRoot } from "./Styles";
 
 const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
   currentFrame: Date.now(),
@@ -96,6 +96,7 @@ export class ModelManager extends CubismUserModel {
     modelManager.cacheBucketName = `${cacheBucketNameRoot}-v${version}`;
     await modelManager.deleteOldCaches();
 
+    const CANVAS = document.querySelector(`.${clsAppRoot} canvas`) as HTMLCanvasElement;
     modelManager.glContext = CANVAS.getContext("webgl") as WebGLRenderingContext;
     modelManager.setupWebglFeatures();
     modelManager.hitTest = hitTest;
@@ -550,6 +551,7 @@ export class ModelManager extends CubismUserModel {
 
     const projection: CubismMatrix44 = new CubismMatrix44();
 
+    const CANVAS = document.querySelector(`.${clsAppRoot} canvas`) as HTMLCanvasElement;
     const { width, height } = CANVAS;
     if ((this.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
       // Calculate the scale by the horizontal length of the model when displaying a horizontally long model in a portrait window.

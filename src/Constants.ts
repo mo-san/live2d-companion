@@ -1,6 +1,10 @@
 /* =====================
  * Configurations for the widget itself
    ===================== */
+export const ErrorIncompatible = `[Live2D-Companion] This browser does not support APIs for the app to run. Please consider using another newer browser.`;
+export const ErrorInvalidPath = `[Live2D-Companion] File path does not end with .model3.json nor .zip! If you want to load the model from online storage, use object notation instead.`;
+export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
+
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
 // export const CubismCoreUrl = "assets/live2dcubismcore.min.js";

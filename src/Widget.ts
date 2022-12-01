@@ -8,6 +8,8 @@ import {
   DefaultConfig,
   Dimension,
   DraggableType,
+  ErrorInvalidPath,
+  ErrorNoModel,
   HitAreaName,
   HitTestAreasNotNull,
   LanguageValueUnset,
@@ -34,34 +36,53 @@ import { getUiStrings } from "./Localization";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
 import { ModelManager } from "./ModelManager";
 import {
+  clsAppRoot,
   clsAppRootMini,
+  clsContent,
   clsCredit,
   clsDragging,
   clsHider,
   clsLanguage,
+  clsMenuButton,
   clsMessage,
   clsMessageVisible,
   clsRevealer,
+  clsSheet,
   clsSwitcher,
+  clsToast,
   clsToastVisible,
   clsToggleMessage,
 } from "./Styles";
-import {
-  CANVAS,
-  elemAppRoot,
-  elemContent,
-  elemCredit,
-  elemHider,
-  elemLanguage,
-  elemLanguageOptions,
-  elemMenuButton,
-  elemMessage,
-  elemRevealer,
-  elemSheet,
-  elemSwitcher,
-  elemToast,
-  elemToggleMessage,
-} from "./index";
+
+export function addDomIfNotExists(): void {
+  const domString = `<div class="${clsAppRoot}">
+  <div class="${clsContent}" style="display: none;">
+    <canvas></canvas>
+    <div class="${clsMessage}"></div>
+    <button class="${clsMenuButton}"><div></div></button>
+    <div class="${clsSheet}">
+      <a class="${clsSwitcher}"><p></p></a>
+      <a class="${clsHider}"><p></p></a>
+      <a class="${clsToggleMessage}"><p></p></a>
+      <div class="${clsLanguage}">
+        <p></p>
+        <select></select>
+        <div class="${clsToast}">Saved!</div>
+      </div>
+      <div class="${clsCredit}"><p></p><ul>
+      <li>Live2D Cubism SDK</li>
+      <li>Live2D Open Software License Agreement</li>
+      <li>Live2D Proprietary Software License Agreement</li>
+      </ul></div>
+    </div>
+  </div>
+  <a class="${clsRevealer}"><p></p></a>
+</div>`;
+
+  if (document.querySelector(`.${clsAppRoot}`) == null) {
+    document.body.insertAdjacentHTML("beforeend", domString);
+  }
+}
 
 // ------------------------------
 // ------------------------------
@@ -111,10 +132,7 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
     return baseObj;
   }
 
-  console.error(
-    "File path does not end with .model3.json nor .zip!" +
-      " If you want to load the model from online storage, use object notation instead."
-  );
+  console.error(ErrorInvalidPath);
   return baseObj;
 }
 
@@ -148,13 +166,28 @@ export class Widget {
   /** A number representing the handler for 'setTimeout' or 'setInterval' */
   MessageTimer: number = 0;
 
+  elemAppRoot = document.querySelector(`.${clsAppRoot}`) as HTMLDivElement;
+  CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
+  elemContent = this.elemAppRoot.querySelector(`.${clsContent}`) as HTMLDivElement;
+  elemMessage = this.elemAppRoot.querySelector(`.${clsMessage}`) as HTMLDivElement;
+  elemMenuButton = this.elemAppRoot.querySelector(`.${clsMenuButton}`) as HTMLButtonElement;
+  elemSheet = this.elemAppRoot.querySelector(`.${clsSheet}`) as HTMLDivElement;
+  elemSwitcher = this.elemAppRoot.querySelector(`.${clsSwitcher}`) as HTMLAnchorElement;
+  elemHider = this.elemAppRoot.querySelector(`.${clsHider}`) as HTMLAnchorElement;
+  elemToggleMessage = this.elemAppRoot.querySelector(`.${clsToggleMessage}`) as HTMLAnchorElement;
+  elemCredit = this.elemAppRoot.querySelector(`.${clsCredit}`) as HTMLDivElement;
+  elemLanguage = this.elemAppRoot.querySelector(`.${clsLanguage}`) as HTMLDivElement;
+  elemLanguageOptions = this.elemAppRoot.querySelector(`.${clsLanguage} select`) as HTMLSelectElement;
+  elemToast = this.elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
+  elemRevealer = this.elemAppRoot.querySelector(`.${clsRevealer}`) as HTMLAnchorElement;
+
   constructor(userConfig: Config) {
     // update default settings with user defined config
     const config: ConfigNotNull = Object.assign(DefaultConfig, userConfig);
 
     this.resizeApp(config);
 
-    if (config.models.length === 0) console.error(`No models provided.`);
+    if (config.models.length === 0) console.error(ErrorNoModel);
     this.models = config.models.map(getModelLocation);
     this.currentModelIndex = 0;
     this.modelPosition = config.modelPosition;
@@ -162,10 +195,10 @@ export class Widget {
 
     this.modelVisible = config.modelVisible;
     if (this.modelVisible) {
-      Object.assign(elemContent.style, { display: null });
+      Object.assign(this.elemContent.style, { display: null });
     } else {
-      elemRevealer.classList.add(this.modelPosition);
-      elemRevealer.style.display = "grid";
+      this.elemRevealer.classList.add(this.modelPosition);
+      this.elemRevealer.style.display = "grid";
     }
 
     this._messages = config.messages;
@@ -183,11 +216,11 @@ export class Widget {
       y: Math.max(0, config.modelDistance.y),
     };
     this.modelCoordInitial = this.calcInitialAppCoord();
-    Object.assign(elemAppRoot.style, this.calcInitialPosition());
+    Object.assign(this.elemAppRoot.style, this.calcInitialPosition());
   }
 
   async init(releaseInstance: boolean = false): Promise<void> {
-    const { clientWidth: width, clientHeight: height } = elemAppRoot;
+    const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
     this.resizeCanvas(width, height);
 
     releaseInstance && this.release(); // release resources
@@ -199,7 +232,7 @@ export class Widget {
     await this.init();
     this.refreshViewpointMatrix(this.modelCoordInitial);
     this.messages = await this.loadMesseges(this._messages);
-    elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
+    this.elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
 
     if (this.modelVisible) {
@@ -218,32 +251,32 @@ export class Widget {
     document.addEventListener("pointermove", async (event) => await this.onPointerMove(event));
     document.addEventListener("pointerleave", (event) => this.onPointerLeave(event));
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
-    elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
+    this.elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
 
-    elemMenuButton.addEventListener("pointerup", (event) => this.toggleMenu(event));
-    elemSwitcher.addEventListener("pointerup", async (event) => await this.switchModel(event));
-    elemHider.addEventListener("pointerup", (event) => this.disappear(event));
-    elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
-    elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
+    this.elemMenuButton.addEventListener("pointerup", (event) => this.toggleMenu(event));
+    this.elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
+    this.elemHider.addEventListener("pointerup", (event) => this.disappear(event));
+    this.elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
+    this.elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
 
     if (this.draggable !== false) {
-      elemAppRoot.addEventListener("pointerdown", (event) => this.onPointerDown(event));
+      this.elemAppRoot.addEventListener("pointerdown", (event) => this.onPointerDown(event));
     }
   }
 
   resizeApp({ width, height }: { width: number; height: number }): void {
     if (width < ThresholdAppRootMini || height < ThresholdAppRootMini) {
-      elemAppRoot.classList.add(clsAppRootMini);
+      this.elemAppRoot.classList.add(clsAppRootMini);
     }
     width = clamp(width, 0, window.innerWidth);
     height = clamp(height, 0, window.innerHeight);
-    elemAppRoot.style.width = `${width}px`;
-    elemAppRoot.style.height = `${height}px`;
+    this.elemAppRoot.style.width = `${width}px`;
+    this.elemAppRoot.style.height = `${height}px`;
   }
 
   resizeCanvas(width: number, height: number): void {
-    CANVAS.width = width;
-    CANVAS.height = height;
+    this.CANVAS.width = width;
+    this.CANVAS.height = height;
   }
 
   release(): void {
@@ -267,8 +300,8 @@ export class Widget {
     if (event != null && event.button !== 0) return;
 
     // Coding like "element.style.display = null" can cause a type error. So this is a workaround.
-    Object.assign(elemContent.style, { display: null });
-    Object.assign(elemRevealer.style, { display: null });
+    Object.assign(this.elemContent.style, { display: null });
+    Object.assign(this.elemRevealer.style, { display: null });
 
     const keyframes = this.calcAppearingKeyframes();
     const options: KeyframeAnimationOptions = {
@@ -276,13 +309,13 @@ export class Widget {
       easing: "cubic-bezier(.13,1.22,.87,-0.56)", // https://cubic-bezier.com
       // 'fill: "forwards"' can be used to stop movement at the last keyframe, but then the element cannot be moved by mouse.
     };
-    const anim = elemAppRoot.animate(keyframes, options);
+    const anim = this.elemAppRoot.animate(keyframes, options);
 
     // When the movement is finished, we stick the element in place.
     const [what, to] = Object.entries(keyframes)[0];
     anim.addEventListener("finish", () => {
-      Object.assign(elemAppRoot.style, { [what]: to[to.length - 1] });
-      elemMenuButton.style.display = "initial";
+      Object.assign(this.elemAppRoot.style, { [what]: to[to.length - 1] });
+      this.elemMenuButton.style.display = "initial";
     });
   }
 
@@ -304,7 +337,7 @@ export class Widget {
       // easing: "cubic-bezier(0.12, 1.4, 0.72, -0.28)",
       easing: "ease-out",
     };
-    const anim = elemAppRoot.animate(keyframes, options);
+    const anim = this.elemAppRoot.animate(keyframes, options);
 
     // When the movement is finished, we stick the element at the position.
     const goal = Object.entries(move).reduce(
@@ -313,45 +346,45 @@ export class Widget {
     );
 
     anim.addEventListener("finish", () => {
-      Object.assign(elemAppRoot.style, goal);
-      elemContent.style.display = "none";
-      elemRevealer.classList.add(this.modelPosition);
-      elemRevealer.style.display = "grid";
+      Object.assign(this.elemAppRoot.style, goal);
+      this.elemContent.style.display = "none";
+      this.elemRevealer.classList.add(this.modelPosition);
+      this.elemRevealer.style.display = "grid";
     });
   }
 
   onWindowResize(_event?: UIEvent): void {
-    const { clientWidth: width, clientHeight: height } = elemAppRoot;
+    const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
     this.resizeCanvas(width, height);
-    this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+    this.refreshViewpointMatrix(this.elemAppRoot.getBoundingClientRect());
     this.bringBackAppIntoWindow();
   }
 
   bringBackAppIntoWindow(): void {
-    const { top, left, width, height } = elemAppRoot.getBoundingClientRect();
+    const { top, left, width, height } = this.elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
 
     if (!(top < 0 || left < 0 || innerHeight < top + height || innerWidth < left + width)) return;
 
-    if (top < 0) elemAppRoot.style.top = `0`;
-    if (left < 0) elemAppRoot.style.left = `0`;
-    if (innerHeight < top + height) elemAppRoot.style.top = `${innerHeight - height}px`;
-    if (innerWidth < left + width) elemAppRoot.style.left = `${innerWidth - width}px`;
+    if (top < 0) this.elemAppRoot.style.top = `0`;
+    if (left < 0) this.elemAppRoot.style.left = `0`;
+    if (innerHeight < top + height) this.elemAppRoot.style.top = `${innerHeight - height}px`;
+    if (innerWidth < left + width) this.elemAppRoot.style.left = `${innerWidth - width}px`;
   }
 
   onPointerDown(event: PointerEvent): void {
     // ignore when touched with more than one fingers
     if (event instanceof TouchEvent && event.targetTouches.length > 1) return;
 
-    if ((event.target as HTMLElement).tagName === "CANVAS") elemAppRoot.classList.add(`${clsDragging}`);
+    if ((event.target as HTMLElement).tagName === "CANVAS") this.elemAppRoot.classList.add(`${clsDragging}`);
 
     const clientX = event instanceof TouchEvent ? event.targetTouches[0].clientX : event.clientX;
     const clientY = event instanceof TouchEvent ? event.targetTouches[0].clientY : event.clientY;
-    const { top, left } = elemAppRoot.getBoundingClientRect();
+    const { top, left } = this.elemAppRoot.getBoundingClientRect();
     this.pointerCoord.x = clientX - left;
     this.pointerCoord.y = clientY - top;
-    elemAppRoot.style.top = `${top}px`;
-    elemAppRoot.style.left = `${left}px`;
+    this.elemAppRoot.style.top = `${top}px`;
+    this.elemAppRoot.style.left = `${left}px`;
   }
 
   async onPointerMove(event: PointerEvent): Promise<void> {
@@ -361,16 +394,16 @@ export class Widget {
     this.modelManager?.setDragging(viewX, viewY);
     const part = await this.modelManager?.touchAt(viewX, viewY);
     part != null && this.sayWhenTouched(part);
-    if (!elemAppRoot.classList.contains(clsDragging)) return;
+    if (!this.elemAppRoot.classList.contains(clsDragging)) return;
 
     event.preventDefault();
     if (this.draggable === "x") {
-      elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
+      this.elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
     } else if (this.draggable === "y") {
-      elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
+      this.elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
     } else if (this.draggable) {
-      elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
-      elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
+      this.elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
+      this.elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
     }
 
     this.bringBackAppIntoWindow();
@@ -381,9 +414,9 @@ export class Widget {
   }
 
   onPointerUp(_event: PointerEvent): void {
-    if (elemAppRoot.classList.contains(clsDragging)) {
-      elemAppRoot.classList.remove(clsDragging);
-      this.refreshViewpointMatrix(elemAppRoot.getBoundingClientRect());
+    if (this.elemAppRoot.classList.contains(clsDragging)) {
+      this.elemAppRoot.classList.remove(clsDragging);
+      this.refreshViewpointMatrix(this.elemAppRoot.getBoundingClientRect());
     }
   }
 
@@ -407,7 +440,7 @@ export class Widget {
    * @param y Y position in the device coordinates (e.g. 0 ~ 1080)
    */
   refreshViewpointMatrix({ x, y }: { x: number; y: number }): void {
-    const { width, height } = elemAppRoot.getBoundingClientRect();
+    const { width, height } = this.elemAppRoot.getBoundingClientRect();
 
     const deviceToScreenMatrix = new CubismMatrix44();
     deviceToScreenMatrix.scale(2 / width, -2 / height);
@@ -442,8 +475,8 @@ export class Widget {
   }
 
   stopSpeaking(): void {
-    elemMessage.innerText = "";
-    elemMessage.classList.remove(`${clsMessageVisible}`);
+    this.elemMessage.innerText = "";
+    this.elemMessage.classList.remove(`${clsMessageVisible}`);
     clearInterval(this.MessageTimer);
   }
 
@@ -467,15 +500,15 @@ export class Widget {
     const candiddates = this.messages.touch.get(part) ?? [];
     const rand = Math.floor(Math.random() * candiddates.length);
     if (candiddates[rand] != null) {
-      elemMessage.innerText = candiddates[rand];
-      elemMessage.classList.add(clsMessageVisible);
+      this.elemMessage.innerText = candiddates[rand];
+      this.elemMessage.classList.add(clsMessageVisible);
     }
   }
 
   sayRandomWord(): void {
     if (this.messages == null) return;
-    if (elemMessage.classList.contains(clsMessageVisible)) {
-      elemMessage.classList.remove(clsMessageVisible);
+    if (this.elemMessage.classList.contains(clsMessageVisible)) {
+      this.elemMessage.classList.remove(clsMessageVisible);
       return;
     }
 
@@ -488,8 +521,8 @@ export class Widget {
     const weightSum = weightArray.reduce((prev, current) => prev + current, 0);
     const rand = this.searchWeightedList(weightArray)(Math.random() * weightSum);
     if (messages[rand] != null) {
-      elemMessage.innerText = messages[rand];
-      elemMessage.classList.add(clsMessageVisible);
+      this.elemMessage.innerText = messages[rand];
+      this.elemMessage.classList.add(clsMessageVisible);
     }
   }
 
@@ -546,23 +579,23 @@ export class Widget {
       easing: "ease-in",
       fill: "both",
     };
-    const anim = elemSheet.animate(keyframes, options);
+    const anim = this.elemSheet.animate(keyframes, options);
 
-    if (window.getComputedStyle(elemSheet).display === "none") {
-      elemSheet.style.display = `grid`;
-      elemMenuButton.classList.add("open");
+    if (window.getComputedStyle(this.elemSheet).display === "none") {
+      this.elemSheet.style.display = `grid`;
+      this.elemMenuButton.classList.add("open");
       anim.play();
     } else {
-      elemMenuButton.classList.remove("open");
+      this.elemMenuButton.classList.remove("open");
       anim.addEventListener("finish", () => {
-        Object.assign(elemSheet.style, { display: null });
+        Object.assign(this.elemSheet.style, { display: null });
       });
       anim.reverse();
     }
   }
 
   calcInitialAppCoord(): { x: number; y: number } {
-    const { width, height } = elemAppRoot.getBoundingClientRect();
+    const { width, height } = this.elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     let { x: xDistance, y: yDistance } = this.modelDistance;
     xDistance = xDistance > 1 ? xDistance : xDistance * innerWidth;
@@ -573,7 +606,7 @@ export class Widget {
   }
 
   calcInitialPosition(): { top: string; left: string } {
-    const { width, height } = elemAppRoot.getBoundingClientRect();
+    const { width, height } = this.elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
     switch (this.slideInFrom) {
@@ -589,7 +622,7 @@ export class Widget {
   }
 
   calcAppearingKeyframes(): { top: string[] } | { left: string[] } {
-    const { width, height } = elemAppRoot.getBoundingClientRect();
+    const { width, height } = this.elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
 
@@ -607,7 +640,7 @@ export class Widget {
   }
 
   calcDisappearingKeyframes(): { top: string[]; left: string[] } {
-    const { top, left, width, height } = elemAppRoot.getBoundingClientRect();
+    const { top, left, width, height } = this.elemAppRoot.getBoundingClientRect();
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
     switch (this.slideInFrom) {
@@ -685,7 +718,7 @@ export class Widget {
       iterations: Infinity,
     };
 
-    return elemMessage.animate(keyframes, options);
+    return this.elemMessage.animate(keyframes, options);
   }
 
   // ------------------------------
@@ -693,22 +726,22 @@ export class Widget {
   // ------------------------------
   fillUiWithUserLanguage(): void {
     const uiStrings = getUiStrings(getUserPrefLanguages()[0]);
-    (elemSwitcher.querySelector("p") as HTMLElement).innerText = uiStrings[clsSwitcher];
-    (elemHider.querySelector("p") as HTMLElement).innerText = uiStrings[clsHider];
+    (this.elemSwitcher.querySelector("p") as HTMLElement).innerText = uiStrings[clsSwitcher];
+    (this.elemHider.querySelector("p") as HTMLElement).innerText = uiStrings[clsHider];
     if (this.messageVisible) {
-      (elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOff;
+      (this.elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOff;
     } else {
-      (elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOn;
+      (this.elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOn;
     }
-    (elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
-    (elemCredit.querySelector("p") as HTMLElement).innerText = uiStrings[clsCredit];
-    (elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
+    (this.elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
+    (this.elemCredit.querySelector("p") as HTMLElement).innerText = uiStrings[clsCredit];
+    (this.elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
   }
 
   addEventListenerToLanguageOptions(): void {
-    elemToast.addEventListener("animationend", () => elemToast.classList.remove(clsToastVisible));
+    this.elemToast.addEventListener("animationend", () => this.elemToast.classList.remove(clsToastVisible));
 
-    elemLanguageOptions.addEventListener("change", (event) => {
+    this.elemLanguageOptions.addEventListener("change", (event) => {
       const language = (event.target as HTMLSelectElement).value;
 
       if (isLocalStorageAvailable()) {
@@ -717,7 +750,7 @@ export class Widget {
         } else {
           localStorage.setItem(MessageLanguageStorageName, language);
         }
-        elemToast.classList.add(clsToastVisible);
+        this.elemToast.classList.add(clsToastVisible);
       }
 
       this.fillUiWithUserLanguage();
@@ -748,13 +781,13 @@ export class Widget {
     }
 
     const selectedKey = localStorage.getItem(MessageLanguageStorageName) ?? "";
-    elemLanguageOptions.insertAdjacentHTML(
+    this.elemLanguageOptions.insertAdjacentHTML(
       "beforeend",
       `<option value="${LanguageValueUnset}" ${result.includes(selectedKey) ? "selected" : ""}>(Unset)</option>`
     );
     for (const key of result) {
       const selected = key === selectedKey ? "selected" : "";
-      elemLanguageOptions.insertAdjacentHTML("beforeend", `<option value="${key}" ${selected}>${key}</option>`);
+      this.elemLanguageOptions.insertAdjacentHTML("beforeend", `<option value="${key}" ${selected}>${key}</option>`);
     }
   }
 }
