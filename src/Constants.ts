@@ -7,7 +7,7 @@ export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
 
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
-// export const CubismCoreUrl = "assets/live2dcubismcore.min.js";
+export const CubismCoreUrl = "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js";
 
 /** Default canvas size. Interpreted as pixels. */
 export const DefaultWidth = 300;
@@ -15,20 +15,21 @@ export const DefaultHeight = 300;
 export const ThresholdAppRootMini = 250;
 
 /**  */
-export const Dimension = {
-  top: "top",
-  bottom: "bottom",
-  left: "left",
-  right: "right",
-} as const;
-
+export const DimensionTop = "top";
+export const DimensionBottom = "bottom";
+export const DimensionLeft = "left";
+export const DimensionRight = "right";
+export type Dimension = typeof DimensionTop | typeof DimensionBottom | typeof DimensionLeft | typeof DimensionRight;
 /** Where in the window to show the widget */
-export const ModelPosition = {
-  topleft: "topleft",
-  topright: "topright",
-  bottomleft: "bottomleft",
-  bottomright: "bottomright",
-} as const;
+const ModelPositionTopLeft = "topleft";
+const ModelPositionTopRight = "topright";
+const ModelPositionBottomLeft = "bottomleft";
+const ModelPositionBottomRight = "bottomright";
+export type ModelPosition =
+  | typeof ModelPositionTopLeft
+  | typeof ModelPositionTopRight
+  | typeof ModelPositionBottomLeft
+  | typeof ModelPositionBottomRight;
 
 /**
  * How far the widget is from the edge of the window.
@@ -41,10 +42,9 @@ export const ModelDistance = {
 };
 
 /**  */
-export const MessagePosition = {
-  top: "top",
-  bottom: "bottom",
-} as const;
+const MessagePositionTop = "top";
+const MessagePositionBottom = "bottom";
+export type MessagePosition = typeof MessagePositionTop | typeof MessagePositionBottom;
 
 /** The interval how long the next message will appear */
 export const MessageDurationSeconds = 10;
@@ -199,13 +199,13 @@ export interface Config {
   useCache?: boolean;
   modelVisible?: boolean;
   messageVisible?: boolean;
-  modelPosition?: keyof typeof ModelPosition;
-  slideInFrom?: keyof typeof Dimension;
+  modelPosition?: ModelPosition;
+  slideInFrom?: typeof DimensionTop;
   modelDistance?: typeof ModelDistance;
   width?: number;
   height?: number;
   draggable?: DraggableType;
-  messagePosition?: keyof typeof MessagePosition;
+  messagePosition?: MessagePosition;
   messages?: MessagesOrUrl;
   version?: string | number;
 }
@@ -215,13 +215,13 @@ export interface ConfigNotNull {
   useCache: boolean;
   modelVisible: boolean;
   messageVisible: boolean;
-  modelPosition: keyof typeof ModelPosition;
-  slideInFrom: keyof typeof Dimension;
+  modelPosition: ModelPosition;
+  slideInFrom: Dimension;
   modelDistance: typeof ModelDistance;
   width: number;
   height: number;
   draggable: DraggableType;
-  messagePosition: keyof typeof MessagePosition;
+  messagePosition: MessagePosition;
   messages: MessagesOrUrl;
   version: string | number;
 }
@@ -231,13 +231,13 @@ export const DefaultConfig: ConfigNotNull = {
   models: [],
   useCache: true,
   modelVisible: true,
-  modelPosition: ModelPosition.bottomright,
-  slideInFrom: Dimension.bottom,
+  modelPosition: ModelPositionBottomRight,
+  slideInFrom: DimensionBottom,
   modelDistance: ModelDistance,
   width: DefaultWidth,
   height: DefaultHeight,
   draggable: true,
   messageVisible: true,
-  messagePosition: MessagePosition.top,
+  messagePosition: MessagePositionTop,
   messages: [],
 };

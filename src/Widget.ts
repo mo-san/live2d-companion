@@ -7,6 +7,10 @@ import {
   ConfigNotNull,
   DefaultConfig,
   Dimension,
+  DimensionBottom,
+  DimensionLeft,
+  DimensionRight,
+  DimensionTop,
   DraggableType,
   ErrorInvalidPath,
   ErrorNoModel,
@@ -147,14 +151,14 @@ export class Widget {
   models: ModelLocationNotNull[];
   currentModelIndex: number;
   modelManager?: ModelManager;
-  modelPosition: keyof typeof ModelPosition;
-  slideInFrom: keyof typeof Dimension;
+  modelPosition: ModelPosition;
+  slideInFrom: Dimension;
   modelVisible: boolean;
   modelCoordInitial: { x: number; y: number };
   modelDistance: { x: number; y: number };
   messages?: MessageSchema;
   private readonly _messages: string | string[];
-  messagePosition: keyof typeof MessagePosition;
+  messagePosition: MessagePosition;
   messageVisible: boolean;
   useCache: boolean;
   draggable: DraggableType;
@@ -202,7 +206,7 @@ export class Widget {
     }
 
     this._messages = config.messages;
-    this.messagePosition = config.messagePosition.toLowerCase() as keyof typeof MessagePosition;
+    this.messagePosition = config.messagePosition.toLowerCase() as MessagePosition;
     this.messageVisible = config.messageVisible;
 
     this.useCache = config.useCache;
@@ -610,13 +614,13 @@ export class Widget {
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
     switch (this.slideInFrom) {
-      case Dimension.top:
+      case DimensionTop:
         return { top: `${-height}px`, left: `${x}px` };
-      case Dimension.bottom:
+      case DimensionBottom:
         return { top: `${innerHeight}px`, left: `${x}px` };
-      case Dimension.left:
+      case DimensionLeft:
         return { top: `${y}px`, left: `${-width}px` };
-      case Dimension.right:
+      case DimensionRight:
         return { top: `${y}px`, left: `${innerWidth}px` };
     }
   }
@@ -628,13 +632,13 @@ export class Widget {
 
     // No need to specify the corresponding parameter (top or left) because it's set in the initialization.
     switch (this.slideInFrom) {
-      case Dimension.top:
+      case DimensionTop:
         return { top: [`${-height}px`, `${height * 0.3}px`, `${y}px`] };
-      case Dimension.bottom:
+      case DimensionBottom:
         return { top: [`${innerHeight}px`, `${innerHeight - height * 0.3}px`, `${y}px`] };
-      case Dimension.left:
+      case DimensionLeft:
         return { left: [`${-width}px`, `${width * 0.3}px`, `${x}px`] };
-      case Dimension.right:
+      case DimensionRight:
         return { left: [`${innerWidth}px`, `${innerWidth - width * 0.3}px`, `${x}px`] };
     }
   }
@@ -644,13 +648,13 @@ export class Widget {
     const { innerWidth, innerHeight } = window;
     const { x, y } = this.calcInitialAppCoord();
     switch (this.slideInFrom) {
-      case Dimension.top:
+      case DimensionTop:
         return { top: [`${top}px`, `${-height}px`], left: [`${left}px`, `${x}px`] };
-      case Dimension.bottom:
+      case DimensionBottom:
         return { top: [`${top}px`, `${innerHeight}px`], left: [`${left}px`, `${x}px`] };
-      case Dimension.left:
+      case DimensionLeft:
         return { top: [`${top}px`, `${y}px`], left: [`${left}px`, `${-width}px`] };
-      case Dimension.right:
+      case DimensionRight:
         return { top: [`${top}px`, `${y}px`], left: [`${left}px`, `${innerWidth}px`] };
     }
   }

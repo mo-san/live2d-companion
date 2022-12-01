@@ -1,3 +1,5 @@
+import { CubismCoreUrl } from "./Constants";
+
 export {};
 declare const ESBUILD_DEFINE_PATH: string;
 
