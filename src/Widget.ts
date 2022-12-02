@@ -154,6 +154,12 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
   return baseObj;
 }
 
+/**
+ * Ensures the given number to be within the given numbers.
+ * @param target
+ * @param min
+ * @param max
+ */
 function clamp(target: number, min: number, max: number): number {
   return Math.min(Math.max(min, target), max);
 }
@@ -162,23 +168,41 @@ function clamp(target: number, min: number, max: number): number {
  * Manages widget itself.
  */
 export class Widget {
+  /** An array of locations where the widget are located. */
   models: ModelLocationNotNull[];
+  /** The index of the array of models. */
   currentModelIndex: number;
+  /** Which corner the widget is located. */
   modelPosition: ModelPosition;
+  /** From which edge the widget show up. */
   slideInFrom: Dimension;
+  /** Whether the widget is visible. */
   modelVisible: boolean;
+  /** The initial coordinates of the widget. */
   modelCoordInitial: { x: number; y: number };
+  /** How far from the edge the widget stands. Numbers can be 0~1 (inclusive) and will be interpreted as a percentage. */
   modelDistance: { x: number; y: number };
+  /** Messages that the character says. */
   messages?: MessageSchema;
-  private readonly _messages: string | string[];
+  /** This temporal variable may be messages or a URL to a JSON file containing messages. */
+  private readonly _messageOrUrl: string | string[];
+  /** Where to position the message window. */
   messagePosition: MessagePosition;
+  /** Whether the message window is visible. */
   messageVisible: boolean;
+  /** Whether we can cache the data. */
   useCache: boolean;
+  /** Whether the user can drag the widget. */
   draggable: DraggableType;
+  /** The version number of the models. Models who have lower versions will be removed from cache. */
   version: string;
+  /** The position of a mouse or a finger. */
   private pointerCoord: { x: number; y: number } = { x: 0, y: 0 };
+  /** An array of weights for the random word selection. */
   private baseWeightArray: number[] = [];
+  /** A matrix which maps the edges of the window to the those of the widget. */
   deviceToScreenMatrix = new CubismMatrix44();
+  /** A viewoirt matrix, kind of camera. */
   viewMatrix = new CubismViewMatrix();
   /** A number representing the handler for 'setTimeout' or 'setInterval' */
   MessageTimer: number = 0;
@@ -217,7 +241,7 @@ export class Widget {
       this.elemRevealer.style.display = "grid";
     }
 
-    this._messages = config.messages;
+    this._messageOrUrl = config.messages;
     this.messagePosition = config.messagePosition.toLowerCase() as MessagePosition;
     this.messageVisible = config.messageVisible;
 
@@ -252,12 +276,12 @@ export class Widget {
   }
 
   async main(): Promise<void> {
-    this.messages = await this.loadMesseges(this._messages);
+    this.messages = await this.loadMesseges(this._messageOrUrl);
     this.elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
 
     if (this.modelVisible) {
-      if (this.messageVisible && this._messages.length > 0) {
+      if (this.messageVisible && this._messageOrUrl.length > 0) {
         setTimeout(() => this.startSpeaking(), MessageAppearDelaySeconds * 1000);
       }
       this.appear();
@@ -456,6 +480,10 @@ export class Widget {
     const { width, height } = this.elemAppRoot.getBoundingClientRect();
 
     const deviceToScreenMatrix = new CubismMatrix44();
+    /**
+     * Yes, 2 is kind of magic number. This is a distance between the edges horizontally and vertically,
+     * because the viewport coordinates in WebGl world are between -1 (left or bottom) to +1 (right or top).
+     */
     deviceToScreenMatrix.scale(2 / width, -2 / height);
     // Shifts the camera position to the center of the canvas
     deviceToScreenMatrix.translateRelative(-width / 2, -height / 2);
