@@ -108,6 +108,16 @@ function filePathToJsonPath(filePath: string): string {
 }
 
 /**
+ * Converts relative path to absolute path. Because inlined web worker does not recognize relative paths.
+ * @param path file path to convert
+ */
+function toAbsolutePath(path: string | undefined): string {
+  if (path == null) return "";
+  const baseURL = document.querySelector("base")?.href ?? window.location.href.replace(/[^\/]*$/, "");
+  return new URL(path, baseURL).href;
+}
+
+/**
  *
  */
 function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNull {
@@ -119,21 +129,25 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
 
   if (typeof fileLocation !== "string") {
     fileLocation.hitTest = Object.assign(hitTest, fileLocation.hitTest);
-    return Object.assign(baseObj, fileLocation) as ModelLocationNotNull;
+    return Object.assign(baseObj, {
+      ...fileLocation,
+      jsonPath: toAbsolutePath(fileLocation.jsonPath),
+      zipPath: toAbsolutePath(fileLocation.zipPath),
+    }) as ModelLocationNotNull;
   }
 
   // strip query parameters
   fileLocation = fileLocation.replace(/[?#].*$/, "");
 
   if (fileLocation.endsWith(".model3.json")) {
-    baseObj.jsonPath = fileLocation;
-    return baseObj;
+    return Object.assign(baseObj, { jsonPath: toAbsolutePath(fileLocation) });
   }
 
   if (fileLocation.endsWith(".zip")) {
-    baseObj.jsonPath = filePathToJsonPath(fileLocation);
-    baseObj.zipPath = fileLocation;
-    return baseObj;
+    return Object.assign(baseObj, {
+      jsonPath: toAbsolutePath(filePathToJsonPath(fileLocation)),
+      zipPath: toAbsolutePath(fileLocation),
+    });
   }
 
   console.error(ErrorInvalidPath);
