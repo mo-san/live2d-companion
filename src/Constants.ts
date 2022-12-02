@@ -59,34 +59,6 @@ export const LanguageValueUnset = "unset";
 /** Which axis the user can move the widget along. */
 export type DraggableType = boolean | "x" | "y";
 
-/**  */
-// type ViewScale = { [_ in "Default" | "Max" | "Min"]: number };
-/**  */
-// type ViewLogicalMax = { [_ in keyof typeof Dimension]: number };
-/**  */
-// type ViewLogical = { [_ in keyof typeof Dimension]: number } & { Max: ViewLogicalMax };
-
-/**  */
-// export const View: { Scale: ViewScale; Logical: ViewLogical } = {
-//   Scale: {
-//     Default: 1.0,
-//     Max: 1.0,
-//     Min: 1.0,
-//   },
-//   Logical: {
-//     top: 1.0,
-//     bottom: -1.0,
-//     left: -1.0,
-//     right: 1.0,
-//     Max: {
-//       top: 2.0,
-//       bottom: -2.0,
-//       left: -2.0,
-//       right: 2.0,
-//     },
-//   },
-// };
-
 /* =====================
  * Configurations for the models
    ===================== */

@@ -38,6 +38,7 @@ import {
 } from "./Constants";
 import { getUiStrings } from "./Localization";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
+import { ModelManagerWorker } from "./offscreen";
 import {
   clsAppRoot,
   clsAppRootMini,
@@ -56,7 +57,6 @@ import {
   clsToastVisible,
   clsToggleMessage,
 } from "./Styles";
-import { ModelManagerWorker } from "./offscreen";
 
 export function addDomIfNotExists(): void {
   const domString = `<div class="${clsAppRoot}">
@@ -229,6 +229,12 @@ export class Widget {
       releaseInstance && { task: "release" }, // release resources
       { task: "load", args: { model: this.models[this.currentModelIndex], version: this.version } },
     ]);
+  }
+
+  async onModelLoad(): Promise<void> {
+    this.refreshViewpointMatrix(this.modelCoordInitial);
+    this.bringBackAppIntoWindow();
+    await this.main();
   }
 
   async main(): Promise<void> {
@@ -650,59 +656,19 @@ export class Widget {
 
   swingMessage(): Animation {
     const keyframes: Keyframe[] | PropertyIndexedKeyframes = {
+      // prettier-ignore
       transform: [
-        "translate(0, 0) rotate(0)",
-        "translate(0.5px, -1.5px) rotate(-0.5deg)",
-        "translate(0.5px, 1.5px) rotate(1.5deg)",
-        "translate(1.5px, 1.5px) rotate(1.5deg)",
-        "translate(2.5px, 1.5px) rotate(0.5deg)",
-        "translate(0.5px, 2.5px) rotate(0.5deg)",
-        "translate(1.5px, 1.5px) rotate(0.5deg)",
-        "translate(0.5px, 0.5px) rotate(0.5deg)",
-        "translate(-1.5px, -0.5px) rotate(1.5deg)",
-        "translate(0.5px, 0.5px) rotate(1.5deg)",
-        "translate(2.5px, 2.5px) rotate(1.5deg)",
-        "translate(0.5px, -1.5px) rotate(1.5deg)",
-        "translate(-1.5px, 1.5px) rotate(-0.5deg)",
-        "translate(1.5px, 0.5px) rotate(1.5deg)",
-        "translate(-0.5px, -0.5px) rotate(-0.5deg)",
-        "translate(1.5px, -0.5px) rotate(-0.5deg)",
-        "translate(2.5px, -1.5px) rotate(1.5deg)",
-        "translate(2.5px, 2.5px) rotate(-0.5deg)",
-        "translate(0.5px, -1.5px) rotate(0.5deg)",
-        "translate(2.5px, -0.5px) rotate(-0.5deg)",
-        "translate(-0.5px, 2.5px) rotate(0.5deg)",
-        "translate(-1.5px, 2.5px) rotate(0.5deg)",
-        "translate(-1.5px, 1.5px) rotate(0.5deg)",
-        "translate(1.5px, -0.5px) rotate(-0.5deg)",
-        "translate(2.5px, -0.5px) rotate(0.5deg)",
-        "translate(-1.5px, 1.5px) rotate(0.5deg)",
-        "translate(-0.5px, 1.5px) rotate(0.5deg)",
-        "translate(-1.5px, 1.5px) rotate(0.5deg)",
-        "translate(0.5px, 2.5px) rotate(1.5deg)",
-        "translate(2.5px, 2.5px) rotate(0.5deg)",
-        "translate(2.5px, -1.5px) rotate(1.5deg)",
-        "translate(-1.5px, 0.5px) rotate(1.5deg)",
-        "translate(-1.5px, 1.5px) rotate(1.5deg)",
-        "translate(0.5px, 2.5px) rotate(1.5deg)",
-        "translate(2.5px, -1.5px) rotate(1.5deg)",
-        "translate(2.5px, 2.5px) rotate(0.5deg)",
-        "translate(-0.5px, -1.5px) rotate(1.5deg)",
-        "translate(-1.5px, 2.5px) rotate(1.5deg)",
-        "translate(-1.5px, 2.5px) rotate(1.5deg)",
-        "translate(-1.5px, 2.5px) rotate(0.5deg)",
-        "translate(-1.5px, 0.5px) rotate(-0.5deg)",
-        "translate(-1.5px, 0.5px) rotate(-0.5deg)",
-        "translate(-0.5px, 0.5px) rotate(1.5deg)",
-        "translate(2.5px, 1.5px) rotate(0.5deg)",
-        "translate(-1.5px, 0.5px) rotate(1.5deg)",
-        "translate(-1.5px, -0.5px) rotate(-0.5deg)",
-        "translate(-1.5px, -1.5px) rotate(1.5deg)",
-        "translate(0.5px, 0.5px) rotate(-0.5deg)",
-        "translate(2.5px, -0.5px) rotate(-0.5deg)",
-        "translate(-1.5px, -1.5px) rotate(-0.5deg)",
-        "translate(0, 0) rotate(0)",
-      ],
+        [0, 0, 0],          [0.5, -1.5, -0.5], [0.5, 1.5, 1.5],   [1.5, 1.5, 1.5],   [2.5, 1.5, 0.5],
+        [0.5, 2.5, 0.5],    [1.5, 1.5, 0.5],   [0.5, 0.5, 0.5],   [-1.5, -0.5, 1.5], [0.5, 0.5, 1.5],
+        [2.5, 2.5, 1.5],    [0.5, -1.5, 1.5],  [-1.5, 1.5, -0.5], [1.5, 0.5, 1.5],   [-0.5, -0.5, -0.5],
+        [1.5, -0.5, -0.5],  [2.5, -1.5, 1.5],  [2.5, 2.5, -0.5],  [0.5, -1.5, 0.5],  [2.5, -0.5, -0.5],
+        [-0.5, 2.5, 0.5],   [-1.5, 2.5, 0.5],  [-1.5, 1.5, 0.5],  [1.5, -0.5, -0.5], [2.5, -0.5, 0.5],
+        [-1.5, 1.5, 0.5],   [-0.5, 1.5, 0.5],  [-1.5, 1.5, 0.5],  [0.5, 2.5, 1.5],   [2.5, 2.5, 0.5],
+        [2.5, -1.5, 1.5],   [-1.5, 0.5, 1.5],  [-1.5, 1.5, 1.5],  [0.5, 2.5, 1.5],   [2.5, -1.5, 1.5],
+        [2.5, 2.5, 0.5],    [-0.5, -1.5, 1.5], [-1.5, 2.5, 1.5],  [-1.5, 2.5, 1.5],  [-1.5, 2.5, 0.5],
+        [-1.5, 0.5, -0.5],  [-1.5, 0.5, -0.5], [-0.5, 0.5, 1.5],  [2.5, 1.5, 0.5],   [-1.5, 0.5, 1.5],
+        [-1.5, -0.5, -0.5], [-1.5, -1.5, 1.5], [0.5, 0.5, -0.5],  [2.5, -0.5, -0.5], [-1.5, -1.5, -0.5],
+      ].map(([a, b, c]) => `translate(${a}px, ${b}px) rotate(${c}deg)`),
     };
 
     const options: KeyframeAnimationOptions = {

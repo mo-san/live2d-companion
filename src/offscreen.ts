@@ -1,8 +1,8 @@
 import { Config, ErrorIncompatible } from "./Constants";
 import { addStyleIfNotExists, clsAppRoot } from "./Styles";
-import { addDomIfNotExists, Widget } from "./Widget";
-// @ts-ignore
+// @ts-expect-error // "esbuild-plugin-inline-worker" loads it
 import Worker from "./webgl.worker.ts";
+import { addDomIfNotExists, Widget } from "./Widget";
 
 if (!Object.prototype.hasOwnProperty.call(window, "fetch") || !Object.prototype.hasOwnProperty.call(window, "caches")) {
   throw new Error(ErrorIncompatible);
@@ -22,28 +22,12 @@ function companion(options: Config): void {
   ModelManagerWorker.onmessage = async (event: MessageEvent) => {
     const { task, args } = event.data as { task: string; args: any };
 
-    if (task === "OffscreenCanvas") {
-      widget.init();
-      return;
-    }
-    // if (task === "resizeCanvas") {
-    //   return;
-    // }
-    if (task === "load") {
-      widget.refreshViewpointMatrix(widget.modelCoordInitial);
-      widget.bringBackAppIntoWindow();
-      await widget.main();
-      return;
-    }
-    if (task === "touch") {
-      widget.sayWhenTouched(args.part);
-    }
-    // if (task === "release") {
-    //   return;
-    // }
-    // if (task === "loop") {
-    //   return;
-    // }
+    if (task === "OffscreenCanvas") return widget.init();
+    if (task === "load") return await widget.onModelLoad();
+    if (task === "touch") return widget.sayWhenTouched(args.part);
+    // if (task === "resizeCanvas") return;
+    // if (task === "release") return;
+    // if (task === "loop") return;
   };
 
   ModelManagerWorker.postMessage([{ task: "OffscreenCanvas", args: { canvas: OffscreenCanvas } }], [OffscreenCanvas]);

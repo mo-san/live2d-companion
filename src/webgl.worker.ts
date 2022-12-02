@@ -491,7 +491,7 @@ export class ModelManager extends CubismUserModel {
       this.motionHandle = await this.startRandomMotion(body.group, Priority.Normal, () => (this.motionHandle = null));
       return body.name;
     }
-    return;
+    return; // eslint-disable-line no-useless-return
   }
 
   didHitIn(hitArenaName: string, x: number, y: number): boolean {

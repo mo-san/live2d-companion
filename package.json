@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node esbuild.mjs --watch",
     "build": "node esbuild.mjs",
-    "lint": "eslint --fix src/**/*.ts{,x}",
+    "lint": "eslint src/**/*.ts{,x}",
+    "lint:fix": "eslint --fix src/**/*.ts{,x}",
     "version": "pnpm run build"
   },
   "devDependencies": {
