@@ -12,7 +12,7 @@ const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
 const servingRoot = "dist";
 const servingPort = 5173;
 
-function combine() {
+function concatCubismCore() {
   const core = readFileSync("Live2dSdk/Core/live2dcubismcore.min.js", { encoding: "utf8" });
   const app = readFileSync(`${servingRoot}/onscreen.js`, { encoding: "utf8" });
   writeFileSync(`${servingRoot}/onscreen.js`, [core, app].join("\n\n"));
@@ -42,7 +42,7 @@ function combine() {
     write: true,
     watch: watchChanges && {
       onRebuild: (error) => {
-        combine();
+        concatCubismCore();
         serve.update();
         error ? logError("× Failed") : log(`[${new Date().toLocaleString()}] ✓ Updated`);
       },
@@ -54,7 +54,7 @@ function combine() {
     },
   });
 
-  combine();
+  concatCubismCore();
 
   if (doAnalysis) log(await analyzeMetafile(result.metafile));
 

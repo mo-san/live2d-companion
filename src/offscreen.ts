@@ -2,7 +2,8 @@ import { Config, ErrorIncompatible } from "./Constants";
 import { addStyleIfNotExists, clsAppRoot } from "./Styles";
 // @ts-expect-error // "esbuild-plugin-inline-worker" loads it
 import Worker from "./webgl.worker.ts";
-import { addDomIfNotExists, Widget } from "./Widget";
+import { addDomIfNotExists } from "./WidgetBase";
+import { WidgetOffscreen } from "./WidgetOffscreen";
 
 if (!Object.prototype.hasOwnProperty.call(window, "fetch") || !Object.prototype.hasOwnProperty.call(window, "caches")) {
   throw new Error(ErrorIncompatible);
@@ -14,7 +15,7 @@ function companion(options: Config): void {
   addStyleIfNotExists();
   addDomIfNotExists();
 
-  const widget = new Widget(options);
+  const widget = new WidgetOffscreen(options);
 
   const CANVAS = document.querySelector(`.${clsAppRoot} canvas`) as HTMLCanvasElement;
   const OffscreenCanvas = CANVAS.transferControlToOffscreen();
