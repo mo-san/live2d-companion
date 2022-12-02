@@ -199,7 +199,7 @@ export interface Config {
   modelVisible?: boolean;
   messageVisible?: boolean;
   modelPosition?: ModelPosition;
-  slideInFrom?: typeof DimensionTop;
+  slideInFrom?: Dimension;
   modelDistance?: typeof ModelDistance;
   width?: number;
   height?: number;
