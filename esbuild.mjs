@@ -14,8 +14,8 @@ const servingPort = 5173;
 
 function concatCubismCore() {
   const core = readFileSync("Live2dSdk/Core/live2dcubismcore.min.js", { encoding: "utf8" });
-  const app = readFileSync(`${servingRoot}/onscreen.js`, { encoding: "utf8" });
-  writeFileSync(`${servingRoot}/onscreen.js`, [core, app].join("\n\n"));
+  const app = readFileSync(`${servingRoot}/index.onscreen.js`, { encoding: "utf8" });
+  writeFileSync(`${servingRoot}/index.onscreen.js`, [core, app].join("\n\n"));
 }
 
 (async () => {
@@ -26,8 +26,8 @@ function concatCubismCore() {
     // prettier-ignore
     entryPoints: [
       "src/loader.ts",
-      "src/onscreen.ts",
-      "src/offscreen.ts",
+      "src/index.onscreen.ts",
+      "src/index.offscreen.ts",
     ],
     outdir: servingRoot,
     bundle: true,

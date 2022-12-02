@@ -6,6 +6,6 @@ const hasOC =
   new OffscreenCanvas(1, 1).getContext("webgl") != null; // eslint-disable-line compat/compat
 
 const elem = Object.assign(document.createElement("script"), {
-  src: ESBUILD_DEFINE_PATH + `/${hasOC ? "offscreen.js" : "onscreen.js"}`,
+  src: ESBUILD_DEFINE_PATH + `/${hasOC ? "index.offscreen.js" : "index.onscreen.js"}`,
 });
 document.head.append(elem);

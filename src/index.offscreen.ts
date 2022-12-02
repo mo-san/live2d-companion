@@ -1,7 +1,7 @@
 import { Config, ErrorIncompatible } from "./Constants";
 import { addStyleIfNotExists, clsAppRoot } from "./Styles";
 // @ts-expect-error // "esbuild-plugin-inline-worker" loads it
-import Worker from "./webgl.worker.ts";
+import Worker from "./ModelManager.worker.ts";
 import { addDomIfNotExists } from "./WidgetBase";
 import { WidgetOffscreen } from "./WidgetOffscreen";
 

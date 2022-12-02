@@ -1,4 +1,4 @@
-import { ModelManagerWorker } from "./offscreen";
+import { ModelManagerWorker } from "./index.offscreen";
 import { WidgetBase } from "./WidgetBase";
 
 export class WidgetOffscreen extends WidgetBase {
