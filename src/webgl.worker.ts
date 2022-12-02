@@ -18,23 +18,25 @@ import { unzipSync } from "fflate";
 // prettier-ignore
 import {
   cacheBucketNameRoot,
-  CubismCoreUrl,
+  CubismCoreUrl, // TODO
   HitTestAreasNotNull,
   ModelLocationNotNull,
   MotionGroup,
   Priority,
 } from "./Constants";
+// import { clsAppRoot } from "./Styles"; // TODO
 
 // @ts-expect-error
 self.importScripts(CubismCoreUrl);
 
-let CANVAS: OffscreenCanvas;
-let modelManager: ModelManager | undefined;
 const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
   currentFrame: Date.now(),
   lastFrame: 0,
   deltaTime: 0,
 };
+
+let CANVAS: OffscreenCanvas;
+let modelManager: ModelManager | undefined;
 
 self.onmessage = async ({ data }: MessageEvent) => {
   for (const { task, args } of data as Array<{ task: string; args: any }>) {
@@ -143,6 +145,7 @@ export class ModelManager extends CubismUserModel {
     modelManager.cacheBucketName = `${cacheBucketNameRoot}-v${version}`;
     await modelManager.deleteOldCaches();
 
+    // const CANVAS = document.querySelector(`.${clsAppRoot} canvas`) as HTMLCanvasElement; // TODO
     modelManager.glContext = CANVAS.getContext("webgl") as WebGLRenderingContext;
     modelManager.setupWebglFeatures();
     modelManager.hitTest = hitTest;
@@ -597,6 +600,7 @@ export class ModelManager extends CubismUserModel {
 
     const projection: CubismMatrix44 = new CubismMatrix44();
 
+    // const CANVAS = document.querySelector(`.${clsAppRoot} canvas`) as HTMLCanvasElement; // TODO
     const { width, height } = CANVAS;
     if ((this.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
       // Calculate the scale by the horizontal length of the model when displaying a horizontally long model in a portrait window.

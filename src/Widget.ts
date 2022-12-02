@@ -39,6 +39,7 @@ import {
 import { getUiStrings } from "./Localization";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
 import { ModelManagerWorker } from "./offscreen";
+// import { ModelManager } from "./ModelManager"; // TODO
 import {
   clsAppRoot,
   clsAppRootMini,
@@ -172,6 +173,7 @@ export class Widget {
   models: ModelLocationNotNull[];
   /** The index of the array of models. */
   currentModelIndex: number;
+  // modelManager?: ModelManager; // TODO
   /** Which corner the widget is located. */
   modelPosition: ModelPosition;
   /** From which edge the widget show up. */
@@ -208,6 +210,7 @@ export class Widget {
   MessageTimer: number = 0;
 
   elemAppRoot = document.querySelector(`.${clsAppRoot}`) as HTMLDivElement;
+  // CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement; // TODO
   elemContent = this.elemAppRoot.querySelector(`.${clsContent}`) as HTMLDivElement;
   elemMessage = this.elemAppRoot.querySelector(`.${clsMessage}`) as HTMLDivElement;
   elemMenuButton = this.elemAppRoot.querySelector(`.${clsMenuButton}`) as HTMLButtonElement;
@@ -259,7 +262,16 @@ export class Widget {
     Object.assign(this.elemAppRoot.style, this.calcInitialPosition());
   }
 
-  init(releaseInstance: boolean = false): void {
+  // async init(releaseInstance: boolean = false): Promise<void> { // TODO
+  //   const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
+  //   this.resizeCanvas(width, height);
+  //
+  //   releaseInstance && this.release(); // release resources
+  //   this.modelManager = await ModelManager.init(this.models[this.currentModelIndex], this.version);
+  //   await this.modelManager.load();
+  // }
+
+  init(releaseInstance: boolean = false): void { // TODO
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
 
     ModelManagerWorker.postMessage([
@@ -269,13 +281,15 @@ export class Widget {
     ]);
   }
 
-  async onModelLoad(): Promise<void> {
+  async onModelLoad(): Promise<void> { // TODO
     this.refreshViewpointMatrix(this.modelCoordInitial);
     this.bringBackAppIntoWindow();
     await this.main();
   }
 
   async main(): Promise<void> {
+    // await this.init(); // TODO
+    // this.refreshViewpointMatrix(this.modelCoordInitial); // TODO
     this.messages = await this.loadMesseges(this._messageOrUrl);
     this.elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
@@ -288,12 +302,14 @@ export class Widget {
     }
     this.registerEvents();
 
+    // await this.modelManager?.loop(0); // TODO
     ModelManagerWorker.postMessage([{ task: "loop", args: {} }]);
   }
 
   registerEvents(): void {
     window.addEventListener("resize", (_event) => this.onWindowResize());
     document.addEventListener("pointermove", (event) => this.onPointerMove(event));
+    // document.addEventListener("pointermove", async (event) => await this.onPointerMove(event));
     document.addEventListener("pointerleave", (event) => this.onPointerLeave(event));
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
     this.elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
@@ -319,6 +335,27 @@ export class Widget {
     this.elemAppRoot.style.height = `${height}px`;
   }
 
+  // resizeCanvas(width: number, height: number): void { // TODO
+  //   this.CANVAS.width = width;
+  //   this.CANVAS.height = height;
+  // }
+
+  // release(): void {
+  //   // release resources
+  //   this.modelManager?.release();
+  //   this.modelManager = undefined;
+  // }
+
+  // async switchModel(event: PointerEvent): Promise<void> {
+  //   // ignore clicks or touches except for the left button click or the primary touch
+  //   if (event.button !== 0) return;
+  //
+  //   this.toggleMenu(event);
+  //   this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
+  //
+  //   await this.init(true);
+  // }
+
   switchModel(event: PointerEvent): void {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event.button !== 0) return;
@@ -328,7 +365,6 @@ export class Widget {
 
     this.init(true);
   }
-
   appear(event?: PointerEvent): void {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event != null && event.button !== 0) return;
@@ -391,6 +427,7 @@ export class Widget {
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
 
     ModelManagerWorker.postMessage([{ task: "resizeCanvas", args: { width, height } }]);
+    // this.resizeCanvas(width, height); // TODO
     this.refreshViewpointMatrix(this.elemAppRoot.getBoundingClientRect());
     this.bringBackAppIntoWindow();
   }
@@ -422,6 +459,28 @@ export class Widget {
     this.elemAppRoot.style.left = `${left}px`;
   }
 
+  // async onPointerMove(event: PointerEvent): Promise<void> { // TODO
+  //   const viewX: number = this.transformViewX(event.x);
+  //   const viewY: number = this.transformViewY(event.y);
+  //
+  //   this.modelManager?.setDragging(viewX, viewY);
+  //   const part = await this.modelManager?.touchAt(viewX, viewY);
+  //   part != null && this.sayWhenTouched(part);
+  //   if (!this.elemAppRoot.classList.contains(clsDragging)) return;
+  //
+  //   event.preventDefault();
+  //   if (this.draggable === "x") {
+  //     this.elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
+  //   } else if (this.draggable === "y") {
+  //     this.elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
+  //   } else if (this.draggable) {
+  //     this.elemAppRoot.style.left = `${event.clientX - this.pointerCoord.x}px`;
+  //     this.elemAppRoot.style.top = `${event.clientY - this.pointerCoord.y}px`;
+  //   }
+  //
+  //   this.bringBackAppIntoWindow();
+  // }
+
   onPointerMove(event: PointerEvent): void {
     const viewX: number = this.transformViewX(event.x);
     const viewY: number = this.transformViewY(event.y);
@@ -447,6 +506,7 @@ export class Widget {
   }
 
   onPointerLeave(_event: PointerEvent): void {
+    // this.modelManager?.setDragging(0, 0); // TODO
     ModelManagerWorker.postMessage([{ task: "look", args: { viewX: 0, viewY: 0 } }]);
   }
 
