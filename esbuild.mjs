@@ -19,7 +19,7 @@ const servingPort = 5173;
     entryPoints: [
       "src/loader.ts",
       "src/offscreen.ts",
-      "src/webgl-worker.ts",
+      "src/webgl.worker.ts",
     ],
     outdir: servingRoot,
     bundle: true,
