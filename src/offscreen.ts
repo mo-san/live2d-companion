@@ -1,12 +1,14 @@
-import { Config, ErrorIncompatible, WorkerUrl } from "./Constants";
+import { Config, ErrorIncompatible } from "./Constants";
 import { addStyleIfNotExists, clsAppRoot } from "./Styles";
 import { addDomIfNotExists, Widget } from "./Widget";
+// @ts-ignore
+import Worker from "./webgl.worker.ts";
 
 if (!Object.prototype.hasOwnProperty.call(window, "fetch") || !Object.prototype.hasOwnProperty.call(window, "caches")) {
   throw new Error(ErrorIncompatible);
 }
 
-export const ModelManagerWorker = new Worker(WorkerUrl);
+export const ModelManagerWorker = Worker();
 
 function companion(options: Config): void {
   addStyleIfNotExists();

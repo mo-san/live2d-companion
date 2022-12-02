@@ -2,6 +2,7 @@ import { analyzeMetafile, build } from "esbuild";
 import { emptyDir } from "fs-extra";
 import serve, { error as logError, log } from "create-serve";
 import browserslistToEsbuild from "browserslist-to-esbuild";
+import inlineWorkerPlugin from "esbuild-plugin-inline-worker";
 
 const version = process.env.npm_package_version;
 const watchChanges = process.argv.slice(2).includes("--watch");
@@ -19,7 +20,6 @@ const servingPort = 5173;
     entryPoints: [
       "src/loader.ts",
       "src/offscreen.ts",
-      "src/webgl.worker.ts",
     ],
     outdir: servingRoot,
     bundle: true,
@@ -28,6 +28,7 @@ const servingPort = 5173;
     platform: "browser",
     sourcemap: isDevelopment,
     metafile: doAnalysis,
+    plugins: [inlineWorkerPlugin({ format: "iife" })],
     target: browserslistToEsbuild(),
     tsconfig: "tsconfig.json",
     write: true,
