@@ -15,9 +15,9 @@ import {
 import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
+// prettier-ignore
 import {
   cacheBucketNameRoot,
-  // CubismCoreUrl,
   HitTestAreasNotNull,
   ModelLocationNotNull,
   MotionGroup,

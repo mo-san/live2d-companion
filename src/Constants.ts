@@ -7,7 +7,6 @@ export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
 
 /** The name of the cache storage in the browser's cache API */
 export const cacheBucketNameRoot = "live2d-companion";
-export const CubismCoreUrl = "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js";
 
 /** Default canvas size. Interpreted as pixels. */
 export const DefaultWidth = 300;

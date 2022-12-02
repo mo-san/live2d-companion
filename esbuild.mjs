@@ -1,5 +1,6 @@
 import { analyzeMetafile, build } from "esbuild";
 import { emptyDir } from "fs-extra";
+import { readFileSync, writeFileSync } from "node:fs";
 import serve, { error as logError, log } from "create-serve";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 
@@ -9,6 +10,12 @@ const doAnalysis = process.env.MODE === "analyze";
 const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
 const servingRoot = "dist";
 const servingPort = 5173;
+
+function combine() {
+  const core = readFileSync("Live2dSdk/Core/live2dcubismcore.min.js", { encoding: "utf8" });
+  const app = readFileSync(`${servingRoot}/onscreen.js`, { encoding: "utf8" });
+  writeFileSync(`${servingRoot}/onscreen.js`, [core, app].join("\n\n"));
+}
 
 (async () => {
   await emptyDir(servingRoot);
@@ -32,6 +39,7 @@ const servingPort = 5173;
     write: true,
     watch: watchChanges && {
       onRebuild: (error) => {
+        combine();
         serve.update();
         error ? logError("× Failed") : log(`[${new Date().toLocaleString()}] ✓ Updated`);
       },
@@ -42,6 +50,8 @@ const servingPort = 5173;
         : `"https://cdn.jsdelivr.net/gh/mo-san/live2d-companion@${version}/dist"`,
     },
   });
+
+  combine();
 
   if (doAnalysis) log(await analyzeMetafile(result.metafile));
 
