@@ -2,8 +2,8 @@ import { analyzeMetafile, build } from "esbuild";
 import { emptyDir } from "fs-extra";
 import serve, { error as logError, log } from "create-serve";
 import browserslistToEsbuild from "browserslist-to-esbuild";
-import { version } from "./package.json";
 
+const version = process.env.npm_package_version;
 const watchChanges = process.argv.slice(2).includes("--watch");
 const doAnalysis = process.env.MODE === "analyze";
 const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
@@ -17,8 +17,8 @@ const servingPort = 5173;
   const result = await build({
     // prettier-ignore
     entryPoints: [
-      "src/loader.js",
-      "src/index.ts",
+      "src/loader.ts",
+      "src/offscreen.ts",
       "src/webgl-worker.ts",
     ],
     outdir: servingRoot,
@@ -39,8 +39,8 @@ const servingPort = 5173;
     },
     define: {
       ESBUILD_DEFINE_PATH: isDevelopment
-        ? servingRoot
-        : `https://cdn.jsdelivr.net/gh/mo-san/live2d-companion@${version}/dist/loader.min.js`,
+        ? `"${servingRoot}"`
+        : `"https://cdn.jsdelivr.net/gh/mo-san/live2d-companion@${version}/dist"`,
     },
   });
 
@@ -50,6 +50,6 @@ const servingPort = 5173;
   watchChanges &&
     serve.start({
       port: servingPort,
-      root: servingRoot,
+      root: ".",
     });
 })();
