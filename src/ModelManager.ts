@@ -64,6 +64,7 @@ export class ModelManager extends CubismUserModel {
   protected motionHandle: CubismMotionQueueEntryHandle | null = null;
   protected cacheBucketName: string = "";
   protected hitTest: HitTestAreasNotNull | undefined;
+  isRunning: boolean = false;
 
   /** Prohibit a direct construction to force construct asynchronously. */
   private constructor() {
@@ -457,6 +458,54 @@ export class ModelManager extends CubismUserModel {
     return false;
   }
 
+  async startLoop(): Promise<void> {
+    this.isRunning = true;
+    await this.loop(0);
+  }
+
+  stopLoop(): void {
+    this.isRunning = false;
+  }
+
+  async loop(time: number): Promise<void> {
+    // prepare the next frame
+    if (this.isRunning) {
+      requestAnimationFrame(async (time) => await this.loop(time));
+    }
+
+    // proceed time
+    Time.currentFrame = time;
+    Time.deltaTime = (Time.currentFrame - Time.lastFrame) / 1000;
+    Time.lastFrame = Time.currentFrame;
+
+    this.flushWebglContext();
+
+    const projection: CubismMatrix44 = new CubismMatrix44();
+
+    const { width, height } = this.glContext.canvas;
+    if ((this.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
+      // Calculate the scale by the horizontal length of the model when displaying a horizontally long model in a portrait window.
+      this.getModelMatrix().setWidth(2.0);
+      projection.scale(1.0, width / height);
+    } else {
+      projection.scale(height / width, 1.0);
+    }
+    this.draw(projection, { width, height });
+    await this.update(Time.deltaTime);
+  }
+
+  draw(matrix: CubismMatrix44, { width, height }: { width: number; height: number }): void {
+    const renderer = super.getRenderer();
+
+    matrix.multiplyByMatrix(this._modelMatrix);
+    renderer.setMvpMatrix(matrix);
+
+    const frameBuffer: WebGLFramebuffer = this.glContext.getParameter(this.glContext.FRAMEBUFFER_BINDING);
+    const viewport = [0, 0, width, height];
+    renderer.setRenderState(frameBuffer, viewport);
+    renderer.drawModel();
+  }
+
   /**
    * About updating the parameters of the models, refer to:
    * https://docs.live2d.com/cubism-sdk-manual/use-framework-web/#update
@@ -532,42 +581,5 @@ export class ModelManager extends CubismUserModel {
 
     // ポーズの設定
     this._pose?.updateParameters(this._model, deltaTime);
-  }
-
-  async loop(time: number): Promise<void> {
-    // prepare the next frame
-    requestAnimationFrame(async (time) => await this.loop(time));
-
-    // proceed time
-    Time.currentFrame = time;
-    Time.deltaTime = (Time.currentFrame - Time.lastFrame) / 1000;
-    Time.lastFrame = Time.currentFrame;
-
-    this.flushWebglContext();
-
-    const projection: CubismMatrix44 = new CubismMatrix44();
-
-    const { width, height } = this.glContext.canvas;
-    if ((this.getModel().getCanvasWidth() ?? 1.0) > 1.0 && width < height) {
-      // Calculate the scale by the horizontal length of the model when displaying a horizontally long model in a portrait window.
-      this.getModelMatrix().setWidth(2.0);
-      projection.scale(1.0, width / height);
-    } else {
-      projection.scale(height / width, 1.0);
-    }
-    this.draw(projection, { width, height });
-    await this.update(Time.deltaTime);
-  }
-
-  draw(matrix: CubismMatrix44, { width, height }: { width: number; height: number }): void {
-    const renderer = super.getRenderer();
-
-    matrix.multiplyByMatrix(this._modelMatrix);
-    renderer.setMvpMatrix(matrix);
-
-    const frameBuffer: WebGLFramebuffer = this.glContext.getParameter(this.glContext.FRAMEBUFFER_BINDING);
-    const viewport = [0, 0, width, height];
-    renderer.setRenderState(frameBuffer, viewport);
-    renderer.drawModel();
   }
 }

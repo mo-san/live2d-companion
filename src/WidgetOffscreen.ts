@@ -4,7 +4,7 @@ import { WidgetBase } from "./WidgetBase";
 export class WidgetOffscreen extends WidgetBase {
   override async main(): Promise<void> {
     await super.main();
-    ModelManagerWorker.postMessage([{ task: "loop", args: {} }]);
+    ModelManagerWorker.postMessage([{ task: "start", args: {} }]);
   }
 
   override init(): void {

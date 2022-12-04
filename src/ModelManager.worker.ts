@@ -35,11 +35,12 @@ self.onmessage = async ({ data }: MessageEvent) => {
     }
     if (task === "release") {
       modelManager?.release();
+      modelManager?.stopLoop();
       modelManager = undefined;
       continue;
     }
-    if (task === "loop") {
-      await modelManager?.loop(0);
+    if (task === "start") {
+      await modelManager?.startLoop();
     }
   }
 };
