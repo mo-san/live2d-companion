@@ -217,6 +217,7 @@ export class WidgetBase {
   elemLanguageOptions = this.elemAppRoot.querySelector(`.${clsLanguage} select`) as HTMLSelectElement;
   elemToast = this.elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
   elemRevealer = this.elemAppRoot.querySelector(`.${clsRevealer}`) as HTMLAnchorElement;
+  CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
 
   constructor(userConfig: Config) {
     // update default settings with user defined config
