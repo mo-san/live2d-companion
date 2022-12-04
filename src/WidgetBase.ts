@@ -3,6 +3,23 @@ import { CubismViewMatrix } from "@framework/math/cubismviewmatrix";
 import {
   AppDisappearingDurationSeconds,
   AppRevealingDurationSeconds,
+  clsAppRoot,
+  clsAppRootMini,
+  clsContent,
+  clsDisabled,
+  clsDragging,
+  clsHider,
+  clsLanguage,
+  clsLicense,
+  clsMenuOpen,
+  clsMenuToggle,
+  clsMessage,
+  clsMessageToggle,
+  clsMessageVisible,
+  clsRevealer,
+  clsSwitcher,
+  clsToast,
+  clsToastVisible,
   Config,
   ConfigNotNull,
   DefaultConfig,
@@ -11,6 +28,7 @@ import {
   DimensionLeft,
   DimensionRight,
   DimensionTop,
+  domString,
   DraggableType,
   ErrorInvalidPath,
   ErrorNoModel,
@@ -34,54 +52,11 @@ import {
   ModelPosition,
   MotionGroup,
   ThresholdAppRootMini,
-  clsAppRoot,
-  clsAppRootMini,
-  clsContent,
-  clsDisabled,
-  clsDragging,
-  clsHider,
-  clsLanguage,
-  clsLicense,
-  clsMenu,
-  clsMenuOpen,
-  clsMenuToggle,
-  clsMessage,
-  clsMessageToggle,
-  clsMessageVisible,
-  clsRevealer,
-  clsSwitcher,
-  clsToast,
-  clsToastVisible,
 } from "./Constants";
 import { getUiStrings } from "./Localization";
 import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
 
 export function addDomIfNotExists(): void {
-  const domString = `<div class="${clsAppRoot}">
-  <div class="${clsContent}" style="display: none;">
-    <canvas></canvas>
-    <div class="${clsMessage}"></div>
-    <button class="${clsMenuToggle}"><div></div></button>
-    <div class="${clsMenu}">
-      <a class="${clsHider}"><p></p></a>
-      <a class="${clsSwitcher}"><p></p></a>
-      <a class="${clsMessageToggle}"><p></p></a>
-      <div class="${clsLanguage}">
-        <p></p>
-        <select></select>
-        <div class="${clsToast}">Saved!</div>
-      </div>
-      <div class="${clsLicense}"><p></p><ul>
-        <li>Each Live2D model is copyrighted by its respective author.</li>
-        <li>For this app (<b>Live2D Companion</b>), <a href="https://github.com/mo-san/live2d-companion/LICENSE">MIT License</a>.<br>The source code is available on <a href="https://github.com/mo-san/live2d-companion">Github</a>.</li>
-        <li>For <b>Cubism Web Framework</b>, <a href="https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html">Live2D Open Software License Agreement</a>.</li>
-        <li>For <b>Live2D Cubism Core</b>, <a href="https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html">Live2D Proprietary Software License Agreement</a>.</li>
-      </div>
-    </div>
-  </div>
-  <a class="${clsRevealer}"><p></p></a>
-</div>`;
-
   if (document.querySelector(`.${clsAppRoot}`) == null) {
     document.body.insertAdjacentHTML("beforeend", domString);
   }
@@ -265,7 +240,7 @@ export class WidgetBase {
 
   async main(): Promise<void> {
     this.messages = await this.loadMesseges(this._messageOrUrl);
-    this.elemMessage.classList.add(`${clsMessage}-${this.messagePosition}`);
+    this.elemMessage.classList.add(`${clsMessage}--${this.messagePosition}`);
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
 
     if (this.modelVisible) {

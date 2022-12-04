@@ -4,7 +4,7 @@
 /** CSS class name of the app's DOM element */
 export const clsAppRoot = `live2d-companion` as const;
 /** CSS class name of the app's DOM element when width is very small */
-export const clsAppRootMini = `${clsAppRoot}-mini` as const;
+export const clsAppRootMini = `${clsAppRoot}--mini` as const;
 /** CSS class name of the app when it is being dragged */
 export const clsDragging = `${clsAppRoot}__dragging` as const;
 export const clsContent = `${clsAppRoot}__content` as const;
@@ -12,7 +12,7 @@ export const clsMenuToggle = `${clsContent}__toggle-menu` as const;
 /** CSS class name for the message window */
 export const clsMessage = `${clsContent}__message` as const;
 /** CSS class name for the message window when visible */
-export const clsMessageVisible = `${clsMessage}-visible` as const;
+export const clsMessageVisible = `${clsMessage}--visible` as const;
 export const clsMenu = `${clsContent}__menu` as const;
 export const clsHider = `${clsMenu}__hide` as const;
 export const clsSwitcher = `${clsMenu}__switch` as const;
@@ -20,10 +20,40 @@ export const clsMessageToggle = `${clsMenu}__toggle-message` as const;
 export const clsLicense = `${clsMenu}__license` as const;
 export const clsLanguage = `${clsMenu}__language` as const;
 export const clsToast = `${clsLanguage}__toast` as const;
-export const clsToastVisible = `${clsToast}__visible` as const;
+export const clsToastVisible = `${clsToast}--visible` as const;
 export const clsRevealer = `${clsAppRoot}__reveal` as const;
 export const clsDisabled = "disabled" as const;
 export const clsMenuOpen = "open" as const;
+
+const urlRepository = "https://github.com/mo-san/live2d-companion";
+const urlLicense = `${urlRepository}/LICENSE`;
+const urlL2dOpen = "https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html";
+const urlL2dProp = "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html";
+export const domString = `<div class="${clsAppRoot}">
+  <div class="${clsContent}" style="display: none;">
+    <canvas></canvas>
+    <div class="${clsMessage}"></div>
+    <button class="${clsMenuToggle}"><div></div></button>
+    <div class="${clsMenu}">
+      <a class="${clsHider}"><p></p></a>
+      <a class="${clsSwitcher}"><p></p></a>
+      <a class="${clsMessageToggle}"><p></p></a>
+      <div class="${clsLanguage}">
+        <p></p>
+        <select></select>
+        <div class="${clsToast}">Saved!</div>
+      </div>
+      <div class="${clsLicense}"><p></p><ul>
+        <li>Each Live2D model is copyrighted by its respective author.</li>
+        <li>For this app (<b>Live2D Companion</b>), <a href="${urlLicense}">MIT License</a>.<br>
+            The source code is available on <a href="${urlRepository}">Github</a>.</li>
+        <li>For <b>Cubism Web Framework</b>, <a href="${urlL2dOpen}">Live2D Open Software License Agreement</a>.</li>
+        <li>For <b>Live2D Cubism Core</b>, <a href="${urlL2dProp}">Live2D Proprietary Software License Agreement</a>.</li>
+      </div>
+    </div>
+  </div>
+  <a class="${clsRevealer}"><p></p></a>
+</div>`;
 
 /* =====================
  * Configurations for the widget itself
@@ -75,11 +105,10 @@ export type MessagePosition = typeof MessagePositionTop | typeof MessagePosition
 
 /** The interval how long the next message will appear */
 export const MessageDurationSeconds = 10;
-export const MessageSwingingSeconds = 40;
+export const MessageSwingingSeconds = 60;
 export const MessageAppearDelaySeconds = 3;
 export const AppDisappearingDurationSeconds = 1;
-export const AppRevealingDurationSeconds = 2;
-export const MenuRevealingDurationSeconds = 0.3;
+export const AppRevealingDurationSeconds = 0.2;
 
 export const LanguageValueUnset = "unset";
 
@@ -134,7 +163,7 @@ export const MessageCategoryGeneral = "general";
 export const MessageCategoryDatetime = "datetime";
 export const MessageCategoryTouch = "touch";
 export const MessageLanguageDefault = "default";
-export const MessageLanguageStorageName = "language";
+export const MessageLanguageStorageName = `${clsAppRoot}-language`;
 
 export interface MesasgeDatetime {
   pattern: RegExp;

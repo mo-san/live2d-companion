@@ -29,7 +29,7 @@ $MenuRevealingDurationSeconds: 0.3s
     font-synthesis: none
     text-rendering: optimizeLegibility
 
-    &-mini
+    &--mini
         font-size: small
 
     *
@@ -142,28 +142,28 @@ $MenuRevealingDurationSeconds: 0.3s
                 border-radius: 0% 100% 100% 0% / 0% 100% 0% 100%
                 box-shadow: -14px -5px 0 0px $msg-bgcolor inset
 
-            &-top
+            &--top
                 top: 0.6rem
 
-            &-bottom
+                &::before
+                    bottom: -15px
+                    right: 20px
+                    clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
+                    transform: scaleY(-1)
+
+            &--bottom
                 bottom: 0.6rem
 
-            &-top::before
-                bottom: -15px
-                right: 20px
-                clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
-                transform: scaleY(-1)
+                &bottom::before
+                    top: -15px
+                    left: 20px
+                    clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
+                    transform: scaleX(-1)
 
-            &-bottom::before
-                top: -15px
-                left: 20px
-                clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
-                transform: scaleX(-1)
-
-            &-visible
+            &--visible
                 animation: show-message $MessageDurationSeconds ease-in-out
 
-        &-mini &__menu
+        &--mini &__menu
             padding: 0.3em
 
         &__toggle-menu
@@ -283,7 +283,7 @@ $MenuRevealingDurationSeconds: 0.3s
                     border-radius: 8px
                     background-color: rgb(38,217,144)
 
-                    &__visible
+                    &--visible
                         display: block
                         animation: show-toast 2s ease-out
 
