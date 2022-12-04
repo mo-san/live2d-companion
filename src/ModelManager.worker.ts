@@ -24,7 +24,7 @@ self.onmessage = async ({ data }: MessageEvent) => {
       self.postMessage({ task });
       continue;
     }
-    if (task === "look") {
+    if (task === "lookAt") {
       modelManager?.setDragging(args.viewX, args.viewY);
       continue;
     }

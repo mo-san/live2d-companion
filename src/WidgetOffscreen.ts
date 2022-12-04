@@ -58,7 +58,7 @@ export class WidgetOffscreen extends WidgetBase {
     const viewY: number = this.transformViewY(event.y);
 
     ModelManagerWorker.postMessage([
-      { task: "look", args: { viewX, viewY } },
+      { task: "lookAt", args: { viewX, viewY } },
       { task: "touch", args: { viewX, viewY } },
     ]);
 
@@ -66,7 +66,7 @@ export class WidgetOffscreen extends WidgetBase {
   }
 
   override onPointerLeave(): void {
-    ModelManagerWorker.postMessage([{ task: "look", args: { viewX: 0, viewY: 0 } }]);
+    ModelManagerWorker.postMessage([{ task: "lookAt", args: { viewX: 0, viewY: 0 } }]);
   }
 
   override onWindowResize(): void {
