@@ -228,6 +228,9 @@ export class WidgetBase {
 
     if (config.models.length === 0) console.error(ErrorNoModel);
     this.models = config.models.map(getModelLocation);
+    if (this.models.length <= 1) {
+      this.elemSwitcher.classList.add("disabled");
+    }
     this.currentModelIndex = 0;
     this.modelPosition = config.modelPosition;
     this.version = String(config.version);
@@ -286,6 +289,9 @@ export class WidgetBase {
     this.elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
     this.elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
 
+    if (this.models.length >= 2) {
+      this.elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
+    }
     if (this.draggable !== false) {
       this.elemAppRoot.addEventListener("pointerdown", (event) => this.onPointerDown(event));
     }

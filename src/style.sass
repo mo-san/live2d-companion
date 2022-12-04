@@ -242,11 +242,15 @@ $revealer-text-shadow-color: rgb(244, 244, 244)
             & p
                 margin: 0
 
+            &__hide
+                cursor: pointer
+
             &__switch
                 cursor: pointer
 
-            &__hide
-                cursor: pointer
+                &.disabled
+                    cursor: auto
+                    color: rgba(0, 0, 0, 0.5)
 
             &__toggle-message
                 cursor: pointer

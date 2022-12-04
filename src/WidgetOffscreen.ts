@@ -37,6 +37,8 @@ export class WidgetOffscreen extends WidgetBase {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event.button !== 0) return;
 
+    if (this.models.length <= 1) return;
+
     this.toggleMenu(event);
     this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
 
