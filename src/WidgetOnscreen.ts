@@ -20,7 +20,7 @@ export class WidgetOnscreen extends WidgetBase {
 
     await super.main();
 
-    await this.modelManager?.loop(0);
+    await this.modelManager?.startLoop();
   }
 
   registerEvents(): void {
@@ -35,6 +35,7 @@ export class WidgetOnscreen extends WidgetBase {
 
   release(): void {
     // release resources
+    this.modelManager?.stopLoop();
     this.modelManager?.release();
     this.modelManager = undefined;
   }

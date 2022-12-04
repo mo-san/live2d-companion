@@ -34,8 +34,8 @@ self.onmessage = async ({ data }: MessageEvent) => {
       continue;
     }
     if (task === "release") {
-      modelManager?.release();
       modelManager?.stopLoop();
+      modelManager?.release();
       modelManager = undefined;
       continue;
     }
