@@ -3,11 +3,17 @@ $msg-line-height: 1.2
 $msg-padding-topbottom: 10px
 $msg-text-shadow: rgba(104, 104, 104, 0.3)
 $revealer-text-shadow-color: rgb(244, 244, 244)
+$menuSize: 32px
+
+// to be shared with ones in Constants.ts
+$MessageDurationSeconds: 10s
+$MenuRevealingDurationSeconds: 0.3s
 
 .live2d-companion
     all: revert
     position: fixed
     box-sizing: border-box
+    overflow: hidden
 
     touch-action: none
     user-select: none
@@ -104,59 +110,6 @@ $revealer-text-shadow-color: rgb(244, 244, 244)
         & canvas:hover
             cursor: grab
 
-        &__menu
-            display: none
-            transition: all 0.4s
-            position: absolute
-            top: 0
-            right: 0
-            width: 32px
-            height: 32px
-            background: none
-            border: none
-            appearance: none
-            cursor: pointer
-            padding: 0
-
-            & div,
-            & div::before,
-            & div::after
-                transition: all 0.4s
-                position: absolute
-                height: 1px
-                background-color: rgb(255, 255, 255)
-                border-radius: 4px
-                box-shadow: 0px 0px 0 1px rgb(0, 0, 0)
-
-            & div
-                display: grid
-                top: 50%
-                left: 4px
-                width: 70%
-
-            & div::before
-                content: ""
-                top: -8px
-                width: 100%
-
-            & div::after
-                content: ""
-                top: 8px
-                width: 100%
-
-            &.open div
-                top: 0
-                width: 30px
-                height: 30px
-                background-color: transparent
-                border: 3px solid rgb(255, 255, 255)
-
-            &.open div::before
-                transform: translateY(20px) rotate(-45deg) scale(0.8)
-
-            &.open div::after
-                transform: translateY(4px) rotate(45deg) scale(0.8)
-
         &__message
             opacity: 0
             display: flex
@@ -208,22 +161,81 @@ $revealer-text-shadow-color: rgb(244, 244, 244)
                 transform: scaleX(-1)
 
             &-visible
-                // MessageDurationSeconds = 10;
-                animation: show-message 10s ease-in-out
+                animation: show-message $MessageDurationSeconds ease-in-out
 
-        &-mini &__sheet
+        &-mini &__menu
             padding: 0.3em
 
-        &__sheet
+        &__toggle-menu
             display: none
+            transition: all 0.4s
+            position: absolute
+            top: 0
+            right: 0
+            width: $menuSize
+            height: $menuSize
+            background: none
+            border: none
+            appearance: none
+            cursor: pointer
+            padding: 0
+
+            div,
+            div::before,
+            div::after
+                transition: all 0.4s
+                position: absolute
+                height: 1px
+                background-color: rgb(255, 255, 255)
+                border-radius: 4px
+                box-shadow: 0px 0px 0 1px rgb(0, 0, 0)
+
+            div
+                display: grid
+                top: 50%
+                left: 4px
+                width: 70%
+
+                &::before
+                    content: ""
+                    top: -8px
+                    width: 100%
+
+                &::after
+                    content: ""
+                    top: 8px
+                    width: 100%
+
+            &.open
+                div
+                    top: 0
+                    width: 30px
+                    height: 30px
+                    background-color: transparent
+                    border: 3px solid rgb(255, 255, 255)
+
+                    &::before
+                        transform: translateY(20px) rotate(-45deg) scale(0.8)
+
+                    &::after
+                        transform: translateY(4px) rotate(45deg) scale(0.8)
+
+        &__toggle-menu.open ~ &__menu
+            transform: translateY(0)
+
+        &__menu
+            display: grid
             position: absolute
             justify-self: center
             align-self: flex-end
             gap: 0.5em
             padding: 1em
-            width: calc(100% - 32px * 2)
-            height: calc(100% - 32px)
+            width: calc(100% - $menuSize * 2)
+            height: 98%
+            top: 1%
             overflow: hidden auto
+            transition: all $MenuRevealingDurationSeconds ease-out
+            transform: translateY(calc(100% + 6px)) // box-shadow spreading taken into account
 
             border-radius: 8px
             background-color: rgba(255, 255, 255, 0.5)
@@ -255,15 +267,13 @@ $revealer-text-shadow-color: rgb(244, 244, 244)
             &__toggle-message
                 cursor: pointer
 
-            &__credit
-
+            &__license
                 & ul
                     all: unset
                     padding-inline-start: 1.5em
                     text-align: start
 
             &__language
-
                 &__toast
                     display: none
                     position: absolute

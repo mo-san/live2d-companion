@@ -52,6 +52,8 @@ export class WidgetOffscreen extends WidgetBase {
   }
 
   override onPointerMove(event: PointerEvent): void {
+    if (this.isMenuOpen()) return;
+
     const viewX: number = this.transformViewX(event.x);
     const viewY: number = this.transformViewY(event.y);
 

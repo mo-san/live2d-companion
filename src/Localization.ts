@@ -1,11 +1,11 @@
-import { clsCredit, clsHider, clsLanguage, clsRevealer, clsSwitcher, clsToggleMessage } from "./Styles";
+import { clsHider, clsLanguage, clsLicense, clsRevealer, clsSwitcher, clsToggleMessage } from "./Styles";
 
 interface UiString {
   [clsSwitcher]: string;
   [clsHider]: string;
   [clsToggleMessage]: { turnOff: string; turnOn: string };
   [clsLanguage]: string;
-  [clsCredit]: string;
+  [clsLicense]: string;
   [clsRevealer]: string;
 }
 
@@ -15,7 +15,7 @@ export function getUiStrings(language: string): UiString {
     [clsHider]: "Hide Widget",
     [clsToggleMessage]: { turnOff: "Hide Message", turnOn: "Show Message" },
     [clsLanguage]: "Select Language",
-    [clsCredit]: "Credit",
+    [clsLicense]: "License",
     [clsRevealer]: "Show Widget",
   };
 
@@ -24,7 +24,7 @@ export function getUiStrings(language: string): UiString {
     [clsHider]: "ウィジェットを隠す",
     [clsToggleMessage]: { turnOff: "メッセージ欄を隠す", turnOn: "メッセージ欄を表示する" },
     [clsLanguage]: "言語設定",
-    [clsCredit]: "Credit",
+    [clsLicense]: "利用規約",
     [clsRevealer]: "看板娘",
   };
 

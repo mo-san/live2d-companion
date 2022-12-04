@@ -17,7 +17,6 @@ import {
   HitAreaName,
   HitTestAreasNotNull,
   LanguageValueUnset,
-  MenuRevealingDurationSeconds,
   MessageAppearDelaySeconds,
   MessageCategoryDatetime,
   MessageCategoryGeneral,
@@ -42,18 +41,18 @@ import {
   clsAppRoot,
   clsAppRootMini,
   clsContent,
-  clsCredit,
   clsDragging,
   clsHider,
   clsLanguage,
-  clsMenuButton,
+  clsLicense,
+  clsMenu,
   clsMessage,
   clsMessageVisible,
   clsRevealer,
-  clsSheet,
   clsSwitcher,
   clsToast,
   clsToastVisible,
+  clsToggleMenu,
   clsToggleMessage,
 } from "./Styles";
 
@@ -62,17 +61,17 @@ export function addDomIfNotExists(): void {
   <div class="${clsContent}" style="display: none;">
     <canvas></canvas>
     <div class="${clsMessage}"></div>
-    <button class="${clsMenuButton}"><div></div></button>
-    <div class="${clsSheet}">
-      <a class="${clsSwitcher}"><p></p></a>
+    <button class="${clsToggleMenu}"><div></div></button>
+    <div class="${clsMenu}">
       <a class="${clsHider}"><p></p></a>
+      <a class="${clsSwitcher}"><p></p></a>
       <a class="${clsToggleMessage}"><p></p></a>
       <div class="${clsLanguage}">
         <p></p>
         <select></select>
         <div class="${clsToast}">Saved!</div>
       </div>
-      <div class="${clsCredit}"><p></p><ul>
+      <div class="${clsLicense}"><p></p><ul>
       <li>Live2D Cubism SDK</li>
       <li>Live2D Open Software License Agreement</li>
       <li>Live2D Proprietary Software License Agreement</li>
@@ -209,12 +208,11 @@ export class WidgetBase {
   elemAppRoot = document.querySelector(`.${clsAppRoot}`) as HTMLDivElement;
   elemContent = this.elemAppRoot.querySelector(`.${clsContent}`) as HTMLDivElement;
   elemMessage = this.elemAppRoot.querySelector(`.${clsMessage}`) as HTMLDivElement;
-  elemMenuButton = this.elemAppRoot.querySelector(`.${clsMenuButton}`) as HTMLButtonElement;
-  elemSheet = this.elemAppRoot.querySelector(`.${clsSheet}`) as HTMLDivElement;
+  elemToggleMenu = this.elemAppRoot.querySelector(`.${clsToggleMenu}`) as HTMLButtonElement;
   elemSwitcher = this.elemAppRoot.querySelector(`.${clsSwitcher}`) as HTMLAnchorElement;
   elemHider = this.elemAppRoot.querySelector(`.${clsHider}`) as HTMLAnchorElement;
   elemToggleMessage = this.elemAppRoot.querySelector(`.${clsToggleMessage}`) as HTMLAnchorElement;
-  elemCredit = this.elemAppRoot.querySelector(`.${clsCredit}`) as HTMLDivElement;
+  elemLicense = this.elemAppRoot.querySelector(`.${clsLicense}`) as HTMLDivElement;
   elemLanguage = this.elemAppRoot.querySelector(`.${clsLanguage}`) as HTMLDivElement;
   elemLanguageOptions = this.elemAppRoot.querySelector(`.${clsLanguage} select`) as HTMLSelectElement;
   elemToast = this.elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
@@ -283,8 +281,7 @@ export class WidgetBase {
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
     this.elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
 
-    this.elemMenuButton.addEventListener("pointerup", (event) => this.toggleMenu(event));
-    this.elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
+    this.elemToggleMenu.addEventListener("pointerup", (event) => this.toggleMenu(event));
     this.elemHider.addEventListener("pointerup", (event) => this.disappear(event));
     this.elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
     this.elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
@@ -329,7 +326,7 @@ export class WidgetBase {
     const [what, to] = Object.entries(keyframes)[0];
     anim.addEventListener("finish", () => {
       Object.assign(this.elemAppRoot.style, { [what]: to[to.length - 1] });
-      this.elemMenuButton.style.display = "initial";
+      this.elemToggleMenu.style.display = "grid";
     });
   }
 
@@ -573,32 +570,18 @@ export class WidgetBase {
     };
   }
 
+  isMenuOpen(): boolean {
+    return this.elemToggleMenu.classList.contains("open");
+  }
+
   toggleMenu(event: PointerEvent): void {
     // ignore clicks or touches except for the left button click or the primary touch
     if (event.button !== 0) return;
 
-    const keyframes: Keyframe[] | PropertyIndexedKeyframes = [
-      { height: `0`, transform: `translateY(100%) scale(0, 0)` },
-      { height: `0`, transform: `translateY(0) scale(1, 0)` },
-      { height: `100%`, transform: `translateY(0) scale(1, 1)` },
-    ];
-    const options: KeyframeAnimationOptions = {
-      duration: MenuRevealingDurationSeconds * 1000,
-      easing: "ease-in",
-      fill: "both",
-    };
-    const anim = this.elemSheet.animate(keyframes, options);
-
-    if (window.getComputedStyle(this.elemSheet).display === "none") {
-      this.elemSheet.style.display = `grid`;
-      this.elemMenuButton.classList.add("open");
-      anim.play();
+    if (this.isMenuOpen()) {
+      this.elemToggleMenu.classList.remove("open");
     } else {
-      this.elemMenuButton.classList.remove("open");
-      anim.addEventListener("finish", () => {
-        Object.assign(this.elemSheet.style, { display: null });
-      });
-      anim.reverse();
+      this.elemToggleMenu.classList.add("open");
     }
   }
 
@@ -702,7 +685,7 @@ export class WidgetBase {
       (this.elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOn;
     }
     (this.elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
-    (this.elemCredit.querySelector("p") as HTMLElement).innerText = uiStrings[clsCredit];
+    (this.elemLicense.querySelector("p") as HTMLElement).innerText = uiStrings[clsLicense];
     (this.elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
   }
 
