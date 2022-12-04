@@ -1,4 +1,31 @@
 /* =====================
+ * Configurations for CSS Styles
+   ===================== */
+/** CSS class name of the app's DOM element */
+export const clsAppRoot = `live2d-companion` as const;
+/** CSS class name of the app's DOM element when width is very small */
+export const clsAppRootMini = `${clsAppRoot}-mini` as const;
+/** CSS class name of the app when it is being dragged */
+export const clsDragging = `${clsAppRoot}__dragging` as const;
+export const clsContent = `${clsAppRoot}__content` as const;
+export const clsMenuToggle = `${clsContent}__toggle-menu` as const;
+/** CSS class name for the message window */
+export const clsMessage = `${clsContent}__message` as const;
+/** CSS class name for the message window when visible */
+export const clsMessageVisible = `${clsMessage}-visible` as const;
+export const clsMenu = `${clsContent}__menu` as const;
+export const clsHider = `${clsMenu}__hide` as const;
+export const clsSwitcher = `${clsMenu}__switch` as const;
+export const clsMessageToggle = `${clsMenu}__toggle-message` as const;
+export const clsLicense = `${clsMenu}__license` as const;
+export const clsLanguage = `${clsMenu}__language` as const;
+export const clsToast = `${clsLanguage}__toast` as const;
+export const clsToastVisible = `${clsToast}__visible` as const;
+export const clsRevealer = `${clsAppRoot}__reveal` as const;
+export const clsDisabled = "disabled" as const;
+export const clsMenuOpen = "open" as const;
+
+/* =====================
  * Configurations for the widget itself
    ===================== */
 export const ErrorIncompatible = `[Live2D-Companion] This browser does not support APIs for the app to run. Please consider using another newer browser.`;

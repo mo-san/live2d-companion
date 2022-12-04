@@ -1,9 +1,9 @@
-import { clsHider, clsLanguage, clsLicense, clsRevealer, clsSwitcher, clsToggleMessage } from "./Styles";
+import { clsHider, clsLanguage, clsLicense, clsMessageToggle, clsRevealer, clsSwitcher } from "./Constants";
 
 interface UiString {
   [clsSwitcher]: string;
   [clsHider]: string;
-  [clsToggleMessage]: { turnOff: string; turnOn: string };
+  [clsMessageToggle]: { turnOff: string; turnOn: string };
   [clsLanguage]: string;
   [clsLicense]: string;
   [clsRevealer]: string;
@@ -13,7 +13,7 @@ export function getUiStrings(language: string): UiString {
   const langEn: UiString = {
     [clsSwitcher]: "Switch Model",
     [clsHider]: "Hide Widget",
-    [clsToggleMessage]: { turnOff: "Hide Message", turnOn: "Show Message" },
+    [clsMessageToggle]: { turnOff: "Hide Message", turnOn: "Show Message" },
     [clsLanguage]: "Select Language",
     [clsLicense]: "License",
     [clsRevealer]: "Show Widget",
@@ -22,7 +22,7 @@ export function getUiStrings(language: string): UiString {
   const langJa: UiString = {
     [clsSwitcher]: "モデル切り替え",
     [clsHider]: "ウィジェットを隠す",
-    [clsToggleMessage]: { turnOff: "メッセージ欄を隠す", turnOn: "メッセージ欄を表示する" },
+    [clsMessageToggle]: { turnOff: "メッセージ欄を隠す", turnOn: "メッセージ欄を表示する" },
     [clsLanguage]: "言語設定",
     [clsLicense]: "利用規約",
     [clsRevealer]: "看板娘",

@@ -34,38 +34,38 @@ import {
   ModelPosition,
   MotionGroup,
   ThresholdAppRootMini,
-} from "./Constants";
-import { getUiStrings } from "./Localization";
-import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
-import {
   clsAppRoot,
   clsAppRootMini,
   clsContent,
+  clsDisabled,
   clsDragging,
   clsHider,
   clsLanguage,
   clsLicense,
   clsMenu,
+  clsMenuOpen,
+  clsMenuToggle,
   clsMessage,
+  clsMessageToggle,
   clsMessageVisible,
   clsRevealer,
   clsSwitcher,
   clsToast,
   clsToastVisible,
-  clsToggleMenu,
-  clsToggleMessage,
-} from "./Styles";
+} from "./Constants";
+import { getUiStrings } from "./Localization";
+import { getFormattedDate, getUserPrefLanguages, isLocalStorageAvailable, loadMessagesFromYaml } from "./Messages";
 
 export function addDomIfNotExists(): void {
   const domString = `<div class="${clsAppRoot}">
   <div class="${clsContent}" style="display: none;">
     <canvas></canvas>
     <div class="${clsMessage}"></div>
-    <button class="${clsToggleMenu}"><div></div></button>
+    <button class="${clsMenuToggle}"><div></div></button>
     <div class="${clsMenu}">
       <a class="${clsHider}"><p></p></a>
       <a class="${clsSwitcher}"><p></p></a>
-      <a class="${clsToggleMessage}"><p></p></a>
+      <a class="${clsMessageToggle}"><p></p></a>
       <div class="${clsLanguage}">
         <p></p>
         <select></select>
@@ -208,10 +208,10 @@ export class WidgetBase {
   elemAppRoot = document.querySelector(`.${clsAppRoot}`) as HTMLDivElement;
   elemContent = this.elemAppRoot.querySelector(`.${clsContent}`) as HTMLDivElement;
   elemMessage = this.elemAppRoot.querySelector(`.${clsMessage}`) as HTMLDivElement;
-  elemToggleMenu = this.elemAppRoot.querySelector(`.${clsToggleMenu}`) as HTMLButtonElement;
+  elemMenuToggle = this.elemAppRoot.querySelector(`.${clsMenuToggle}`) as HTMLButtonElement;
   elemSwitcher = this.elemAppRoot.querySelector(`.${clsSwitcher}`) as HTMLAnchorElement;
   elemHider = this.elemAppRoot.querySelector(`.${clsHider}`) as HTMLAnchorElement;
-  elemToggleMessage = this.elemAppRoot.querySelector(`.${clsToggleMessage}`) as HTMLAnchorElement;
+  elemMessageToggle = this.elemAppRoot.querySelector(`.${clsMessageToggle}`) as HTMLAnchorElement;
   elemLicense = this.elemAppRoot.querySelector(`.${clsLicense}`) as HTMLDivElement;
   elemLanguage = this.elemAppRoot.querySelector(`.${clsLanguage}`) as HTMLDivElement;
   elemLanguageOptions = this.elemAppRoot.querySelector(`.${clsLanguage} select`) as HTMLSelectElement;
@@ -228,7 +228,7 @@ export class WidgetBase {
     if (config.models.length === 0) console.error(ErrorNoModel);
     this.models = config.models.map(getModelLocation);
     if (this.models.length <= 1) {
-      this.elemSwitcher.classList.add("disabled");
+      this.elemSwitcher.classList.add(clsDisabled);
     }
     this.currentModelIndex = 0;
     this.modelPosition = config.modelPosition;
@@ -282,10 +282,10 @@ export class WidgetBase {
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
     this.elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
 
-    this.elemToggleMenu.addEventListener("pointerup", (event) => this.toggleMenu(event));
+    this.elemMenuToggle.addEventListener("pointerup", (event) => this.toggleMenu(event));
     this.elemHider.addEventListener("pointerup", (event) => this.disappear(event));
     this.elemRevealer.addEventListener("pointerup", (event) => this.appear(event));
-    this.elemToggleMessage.addEventListener("pointerup", (event) => this.toggleMessage(event));
+    this.elemMessageToggle.addEventListener("pointerup", (event) => this.toggleMessage(event));
 
     if (this.models.length >= 2) {
       this.elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
@@ -327,7 +327,7 @@ export class WidgetBase {
     const [what, to] = Object.entries(keyframes)[0];
     anim.addEventListener("finish", () => {
       Object.assign(this.elemAppRoot.style, { [what]: to[to.length - 1] });
-      this.elemToggleMenu.style.display = "grid";
+      this.elemMenuToggle.style.display = "grid";
     });
   }
 
@@ -572,7 +572,7 @@ export class WidgetBase {
   }
 
   isMenuOpen(): boolean {
-    return this.elemToggleMenu.classList.contains("open");
+    return this.elemMenuToggle.classList.contains(clsMenuOpen);
   }
 
   toggleMenu(event: PointerEvent): void {
@@ -580,9 +580,9 @@ export class WidgetBase {
     if (event.button !== 0) return;
 
     if (this.isMenuOpen()) {
-      this.elemToggleMenu.classList.remove("open");
+      this.elemMenuToggle.classList.remove(clsMenuOpen);
     } else {
-      this.elemToggleMenu.classList.add("open");
+      this.elemMenuToggle.classList.add(clsMenuOpen);
     }
   }
 
@@ -681,9 +681,9 @@ export class WidgetBase {
     (this.elemSwitcher.querySelector("p") as HTMLElement).innerText = uiStrings[clsSwitcher];
     (this.elemHider.querySelector("p") as HTMLElement).innerText = uiStrings[clsHider];
     if (this.messageVisible) {
-      (this.elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOff;
+      (this.elemMessageToggle.querySelector("p") as HTMLElement).innerText = uiStrings[clsMessageToggle].turnOff;
     } else {
-      (this.elemToggleMessage.querySelector("p") as HTMLElement).innerText = uiStrings[clsToggleMessage].turnOn;
+      (this.elemMessageToggle.querySelector("p") as HTMLElement).innerText = uiStrings[clsMessageToggle].turnOn;
     }
     (this.elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
     (this.elemLicense.querySelector("p") as HTMLElement).innerText = uiStrings[clsLicense];
