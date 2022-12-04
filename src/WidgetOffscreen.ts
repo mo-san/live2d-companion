@@ -67,6 +67,7 @@ export class WidgetOffscreen extends WidgetBase {
 
   override onPointerLeave(): void {
     ModelManagerWorker.postMessage([{ task: "lookAt", args: { viewX: 0, viewY: 0 } }]);
+    super.onPointerLeave();
   }
 
   override onWindowResize(): void {

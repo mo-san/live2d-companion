@@ -63,6 +63,7 @@ export class WidgetOnscreen extends WidgetBase {
 
   override onPointerLeave(): void {
     this.modelManager?.setDragging(0, 0);
+    super.onPointerLeave();
   }
 
   override onWindowResize(): void {

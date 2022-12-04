@@ -257,6 +257,7 @@ export class WidgetBase {
     window.addEventListener("resize", (_event) => this.onWindowResize());
     document.addEventListener("pointerleave", () => this.onPointerLeave());
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
+    document.addEventListener("pointercancel", (event) => this.onPointerUp(event));
     this.elemAppRoot.addEventListener("pointerup", (event) => this.onPointerUp(event));
 
     this.elemMenuToggle.addEventListener("pointerup", (event) => this.toggleMenu(event));
@@ -361,15 +362,13 @@ export class WidgetBase {
 
   onPointerDown(event: PointerEvent): void {
     // ignore when touched with more than one fingers
-    if (event instanceof TouchEvent && event.targetTouches.length > 1) return;
+    if (event.button != 0) return;
 
     if ((event.target as HTMLElement).tagName === "CANVAS") this.elemAppRoot.classList.add(`${clsDragging}`);
 
-    const clientX = event instanceof TouchEvent ? event.targetTouches[0].clientX : event.clientX;
-    const clientY = event instanceof TouchEvent ? event.targetTouches[0].clientY : event.clientY;
     const { top, left } = this.elemAppRoot.getBoundingClientRect();
-    this.pointerCoord.x = clientX - left;
-    this.pointerCoord.y = clientY - top;
+    this.pointerCoord.x = event.clientX - left;
+    this.pointerCoord.y = event.clientY - top;
     this.elemAppRoot.style.top = `${top}px`;
     this.elemAppRoot.style.left = `${left}px`;
   }
