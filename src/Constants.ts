@@ -108,7 +108,7 @@ export const MessageDurationSeconds = 10;
 export const MessageSwingingSeconds = 60;
 export const MessageAppearDelaySeconds = 3;
 export const AppDisappearingDurationSeconds = 1;
-export const AppRevealingDurationSeconds = 0.2;
+export const AppRevealingDurationSeconds = 2;
 
 export const LanguageValueUnset = "unset";
 
