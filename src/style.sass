@@ -32,7 +32,7 @@ $MenuRevealingDurationSeconds: 0.3s
     &-mini
         font-size: small
 
-    & *
+    *
         all: revert
         box-sizing: border-box
 
@@ -55,10 +55,10 @@ $MenuRevealingDurationSeconds: 0.3s
 
         transition: transform 0.3s cubic-bezier(0, 0.78, 0.58, 1), text-shadow 0.5s ease-out
 
-        & p
+        p
             margin: 0
 
-        &.bottomright
+        .bottomright
             bottom: 3rem
             right: 0.5rem
             align-content: end
@@ -68,7 +68,7 @@ $MenuRevealingDurationSeconds: 0.3s
                 transform: translateX(1rem)
                 text-shadow: 8px -8px 0px $revealer-text-shadow-color
 
-        &.bottomleft
+        .bottomleft
             bottom: 3rem
             left: 0.5rem
             align-content: start
@@ -78,7 +78,7 @@ $MenuRevealingDurationSeconds: 0.3s
                 transform: translateX(-1rem)
                 text-shadow: -8px 8px 0px $revealer-text-shadow-color
 
-        &.topright
+        .topright
             top: 3rem
             right: 0.5rem
             align-content: end
@@ -88,7 +88,7 @@ $MenuRevealingDurationSeconds: 0.3s
                 transform: translateX(1rem)
                 text-shadow: 8px -8px 0px $revealer-text-shadow-color
 
-        &.topleft
+        .topleft
             top: 3rem
             left: 0.5rem
             align-content: start
@@ -103,12 +103,12 @@ $MenuRevealingDurationSeconds: 0.3s
         justify-items: center
         overflow: hidden
 
-        & canvas
+        canvas
             width: 100%
             height: 100%
 
-        & canvas:hover
-            cursor: grab
+            &:hover
+                cursor: grab
 
         &__message
             opacity: 0
@@ -251,7 +251,7 @@ $MenuRevealingDurationSeconds: 0.3s
                 min-height: 3em
                 height: max-content
 
-            & p
+            p
                 margin: 0
 
             &__hide
