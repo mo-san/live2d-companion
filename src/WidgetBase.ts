@@ -194,6 +194,7 @@ export class WidgetBase {
   elemToast = this.elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
   elemRevealer = this.elemAppRoot.querySelector(`.${clsRevealer}`) as HTMLAnchorElement;
   CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
+  private messageAnimation: Animation | undefined;
 
   constructor(userConfig: Config) {
     // update default settings with user defined config
@@ -450,7 +451,11 @@ export class WidgetBase {
   }
 
   startSpeaking(): void {
-    this.swingMessage();
+    if (this.messageAnimation == null) {
+      this.messageAnimation = this.swingMessage();
+    } else if (this.messageAnimation.playState !== "running") {
+      this.messageAnimation.play();
+    }
 
     this.sayRandomWord();
     this.MessageTimer = setInterval(() => this.sayRandomWord(), MessageDurationSeconds * 1000);
@@ -459,6 +464,7 @@ export class WidgetBase {
   stopSpeaking(): void {
     this.elemMessage.innerText = "";
     this.elemMessage.classList.remove(`${clsMessageVisible}`);
+    this.messageAnimation?.cancel();
     clearInterval(this.MessageTimer);
   }
 
@@ -469,9 +475,9 @@ export class WidgetBase {
     this.messageVisible = !this.messageVisible;
     this.fillUiWithUserLanguage();
     if (this.messageVisible) {
-      this.stopSpeaking();
-    } else {
       this.startSpeaking();
+    } else {
+      this.stopSpeaking();
     }
   }
 
@@ -627,16 +633,16 @@ export class WidgetBase {
     const keyframes: Keyframe[] | PropertyIndexedKeyframes = {
       // prettier-ignore
       transform: [
-        [0, 0, 0],          [0.5, -1.5, -0.5], [0.5, 1.5, 1.5],   [1.5, 1.5, 1.5],   [2.5, 1.5, 0.5],
-        [0.5, 2.5, 0.5],    [1.5, 1.5, 0.5],   [0.5, 0.5, 0.5],   [-1.5, -0.5, 1.5], [0.5, 0.5, 1.5],
-        [2.5, 2.5, 1.5],    [0.5, -1.5, 1.5],  [-1.5, 1.5, -0.5], [1.5, 0.5, 1.5],   [-0.5, -0.5, -0.5],
-        [1.5, -0.5, -0.5],  [2.5, -1.5, 1.5],  [2.5, 2.5, -0.5],  [0.5, -1.5, 0.5],  [2.5, -0.5, -0.5],
-        [-0.5, 2.5, 0.5],   [-1.5, 2.5, 0.5],  [-1.5, 1.5, 0.5],  [1.5, -0.5, -0.5], [2.5, -0.5, 0.5],
-        [-1.5, 1.5, 0.5],   [-0.5, 1.5, 0.5],  [-1.5, 1.5, 0.5],  [0.5, 2.5, 1.5],   [2.5, 2.5, 0.5],
-        [2.5, -1.5, 1.5],   [-1.5, 0.5, 1.5],  [-1.5, 1.5, 1.5],  [0.5, 2.5, 1.5],   [2.5, -1.5, 1.5],
-        [2.5, 2.5, 0.5],    [-0.5, -1.5, 1.5], [-1.5, 2.5, 1.5],  [-1.5, 2.5, 1.5],  [-1.5, 2.5, 0.5],
-        [-1.5, 0.5, -0.5],  [-1.5, 0.5, -0.5], [-0.5, 0.5, 1.5],  [2.5, 1.5, 0.5],   [-1.5, 0.5, 1.5],
-        [-1.5, -0.5, -0.5], [-1.5, -1.5, 1.5], [0.5, 0.5, -0.5],  [2.5, -0.5, -0.5], [-1.5, -1.5, -0.5],
+        [0, 0, 0],    [1, -3, -1], [1, 3, 3],   [3, 3, 3],   [4, 3, 1],
+        [1, 4, 1],    [3, 3, 1],   [1, 1, 1],   [-3, -1, 3], [1, 1, 3],
+        [4, 4, 3],    [1, -3, 3],  [-3, 3, -1], [3, 1, 3],   [-1, -1, -1],
+        [3, -1, -1],  [4, -3, 3],  [4, 4, -1],  [1, -3, 1],  [4, -1, -1],
+        [-1, 4, 1],   [-3, 4, 1],  [-3, 3, 1],  [3, -1, -1], [4, -1, 1],
+        [-3, 3, 1],   [-1, 3, 1],  [-3, 3, 1],  [1, 4, 3],   [4, 4, 1],
+        [4, -3, 3],   [-3, 1, 3],  [-3, 3, 3],  [1, 4, 3],   [4, -3, 3],
+        [4, 4, 1],    [-1, -3, 3], [-3, 4, 3],  [-3, 4, 3],  [-3, 4, 1],
+        [-3, 1, -1],  [-3, 1, -1], [-1, 1, 3],  [4, 3, 1],   [-3, 1, 3],
+        [-3, -1, -1], [-3, -3, 3], [1, 1, -1],  [4, -1, -1], [-3, -3, -1],
       ].map(([a, b, c]) => `translate(${a}px, ${b}px) rotate(${c}deg)`),
     };
 
