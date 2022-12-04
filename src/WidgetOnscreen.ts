@@ -3,7 +3,6 @@ import { WidgetBase } from "./WidgetBase";
 
 export class WidgetOnscreen extends WidgetBase {
   modelManager?: ModelManager;
-  CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
 
   override async init(releaseInstance: boolean = false): Promise<void> {
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
