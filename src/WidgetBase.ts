@@ -72,10 +72,10 @@ export function addDomIfNotExists(): void {
         <div class="${clsToast}">Saved!</div>
       </div>
       <div class="${clsLicense}"><p></p><ul>
-      <li>Live2D Cubism SDK</li>
-      <li>Live2D Open Software License Agreement</li>
-      <li>Live2D Proprietary Software License Agreement</li>
-      </ul></div>
+      <li>Each Live2D model is copyrighted by its respective author.</li>
+      <li>For this app (<b>Live2D Companion</b>), <a href="https://github.com/mo-san/live2d-companion/LICENSE">MIT License</a>.<br>The source code is available on <a href="https://github.com/mo-san/live2d-companion">Github</a>.</li>
+      <li>For <b>Cubism Web Framework</b>, <a href="https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html">Live2D Open Software License Agreement</a>.</li>
+      <li>For <b>Live2D Cubism Core</b>, <a href="https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html">Live2D Proprietary Software License Agreement</a>.</li>
     </div>
   </div>
   <a class="${clsRevealer}"><p></p></a>
