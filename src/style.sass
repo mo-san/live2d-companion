@@ -1,0 +1,314 @@
+$msg-bgcolor: rgba(236, 217, 188, 1)
+$msg-line-height: 1.2
+$msg-padding-topbottom: 10px
+$msg-text-shadow: rgba(104, 104, 104, 0.3)
+$revealer-text-shadow-color: rgb(244, 244, 244)
+$menuSize: 32px
+
+// to be shared with ones in Constants.ts
+$MessageDurationSeconds: 10s
+$MenuRevealingDurationSeconds: 0.3s
+
+.live2d-companion
+    all: revert
+    position: fixed
+    box-sizing: border-box
+    overflow: hidden
+
+    touch-action: none
+    user-select: none
+
+    color: rgb(0, 0, 0)
+    // "UD Digi Kyokasho" fonts are available via the Japanese Supplemental Fonts package for Windows 10 or later.
+    // "DengXian" font is available via the Simplified Chinese Supplemental Fonts package for Windows 10 or later.
+    // For other platforms, font selection is entrusted to them.
+    font-family: "Palatino Linotype", "UD Digi Kyokasho NK-R", "DengXian", sans-serif
+    -webkit-font-smoothing: antialiased
+    -moz-osx-font-smoothing: grayscale
+    -webkit-text-size-adjust: 100%
+    font-synthesis: none
+    text-rendering: optimizeLegibility
+
+    &--mini
+        font-size: small
+
+    *
+        all: revert
+        box-sizing: border-box
+
+    &__dragging
+        cursor: grabbing
+
+    &__reveal
+        display: none
+        position: fixed
+        padding: 0.4rem
+        width: 6rem
+        background-color: hsl(49deg, 98%, 60%)
+        border: 2px solid rgb(0, 0, 0)
+        border-radius: 10px
+        box-shadow: 0 0 0px 4px rgb(255, 255, 255)
+        cursor: pointer
+
+        writing-mode: vertical-rl
+        white-space: nowrap
+
+        transition: transform 0.3s cubic-bezier(0, 0.78, 0.58, 1), text-shadow 0.5s ease-out
+
+        p
+            margin: 0
+
+        &.bottomright
+            bottom: 3rem
+            right: 0.5rem
+            align-content: end
+            transform: translateX(calc(100% - 1.6rem))
+
+            &:hover
+                transform: translateX(1rem)
+                text-shadow: 8px -8px 0px $revealer-text-shadow-color
+
+        &.bottomleft
+            bottom: 3rem
+            left: 0.5rem
+            align-content: start
+            transform: translateX(calc(-100% + 1.6rem))
+
+            &:hover
+                transform: translateX(-1rem)
+                text-shadow: -8px 8px 0px $revealer-text-shadow-color
+
+        &.topright
+            top: 3rem
+            right: 0.5rem
+            align-content: end
+            transform: translateX(calc(100% - 1.6rem))
+
+            &:hover
+                transform: translateX(1rem)
+                text-shadow: 8px -8px 0px $revealer-text-shadow-color
+
+        &.topleft
+            top: 3rem
+            left: 0.5rem
+            align-content: start
+            transform: translateX(calc(-100% + 1.6rem))
+
+            &:hover
+                transform: translateX(-1rem)
+                text-shadow: -8px 8px 0px $revealer-text-shadow-color
+
+    &__content
+        display: grid
+        justify-items: center
+        overflow: hidden
+
+        canvas
+            width: 100%
+            height: 100%
+
+            &:hover
+                cursor: grab
+
+        &__message
+            opacity: 0
+            display: flex
+            align-items: center
+            justify-content: center
+            padding: $msg-padding-topbottom 10px
+            width: clamp(100px, 250px, 80%)
+            min-height: calc($msg-padding-topbottom * 2 + $msg-line-height * 1rem)
+
+            position: absolute
+
+            line-height: $msg-line-height
+            word-break: break-all
+
+            border-radius: 12px
+            background-color: $msg-bgcolor
+            box-shadow: 0 0 7px 2px rgba(191, 158, 118, 0.7)
+            text-shadow: 1px 0 0 $msg-text-shadow, 0 1px 0 $msg-text-shadow
+
+            transition: opacity 0.2s
+            cursor: auto
+            user-select: text
+
+            &::before
+                content: ""
+                display: block
+                height: 26px
+                width: 26px
+                position: absolute
+                border-radius: 0% 100% 100% 0% / 0% 100% 0% 100%
+                box-shadow: -14px -5px 0 0px $msg-bgcolor inset
+
+            &--top
+                top: 0.6rem
+
+                &::before
+                    bottom: -15px
+                    right: 20px
+                    clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
+                    transform: scaleY(-1)
+
+            &--bottom
+                bottom: 0.6rem
+
+                &bottom::before
+                    top: -15px
+                    left: 20px
+                    clip-path: polygon(5% 5%, 95% 5%, 95% 60%, 5% 60%)
+                    transform: scaleX(-1)
+
+            &--visible
+                animation: show-message $MessageDurationSeconds ease-in-out
+
+        &--mini &__menu
+            padding: 0.3em
+
+        &__toggle-menu
+            display: none
+            transition: all 0.4s
+            position: absolute
+            top: 0
+            right: 0
+            width: $menuSize
+            height: $menuSize
+            background: none
+            border: none
+            appearance: none
+            cursor: pointer
+            padding: 0
+
+            div,
+            div::before,
+            div::after
+                transition: all 0.4s
+                position: absolute
+                height: 1px
+                background-color: rgb(255, 255, 255)
+                border-radius: 4px
+                box-shadow: 0px 0px 0 1px rgb(0, 0, 0)
+
+            div
+                display: grid
+                top: 50%
+                left: 4px
+                width: 70%
+
+                &::before
+                    content: ""
+                    top: -8px
+                    width: 100%
+
+                &::after
+                    content: ""
+                    top: 8px
+                    width: 100%
+
+            &.open
+                div
+                    top: 0
+                    width: 30px
+                    height: 30px
+                    background-color: transparent
+                    border: 3px solid rgb(255, 255, 255)
+
+                    &::before
+                        transform: translateY(20px) rotate(-45deg) scale(0.8)
+
+                    &::after
+                        transform: translateY(4px) rotate(45deg) scale(0.8)
+
+        &__toggle-menu.open ~ &__menu
+            transform: translateY(0)
+
+        &__menu
+            display: grid
+            position: absolute
+            justify-self: center
+            align-self: flex-end
+            gap: 0.5em
+            padding: 1em
+            width: calc(100% - $menuSize * 2)
+            height: 98%
+            top: 1%
+            overflow: hidden auto
+            transition: all $MenuRevealingDurationSeconds ease-out
+            transform: translateY(105%) // box-shadow spreading taken into account
+
+            border-radius: 8px
+            background-color: rgba(255, 255, 255, 0.5)
+            box-shadow: 2px 0px 4px 0px rgba(0, 0, 0, 0.9)
+
+            & > *
+                background-color: rgba(255, 255, 255, 0.8)
+                display: grid
+                align-items: center
+                text-align: center
+                border-radius: 8px
+                box-shadow: 2px 0px 4px 0px rgba(0, 0, 0, 0.9)
+                min-height: 3em
+                height: max-content
+
+            p
+                margin: 0
+
+            &__hide
+                cursor: pointer
+
+            &__switch
+                cursor: pointer
+
+                &.disabled
+                    cursor: auto
+                    color: rgba(0, 0, 0, 0.5)
+
+            &__toggle-message
+                cursor: pointer
+
+            &__license
+                & ul
+                    all: unset
+                    padding-inline-start: 1.5em
+                    text-align: start
+
+            &__language
+                &__toast
+                    display: none
+                    position: absolute
+                    width: 5rem
+                    left: calc(50% - 2.5rem)
+                    padding: 0.3rem
+                    border-radius: 8px
+                    background-color: rgb(38,217,144)
+
+                    &--visible
+                        display: block
+                        animation: show-toast 2s ease-out
+
+            &__language select
+                min-height: 2rem
+
+            &__language select option[selected][disabled]
+                display: none
+
+@keyframes show-message
+    0%
+        opacity: 0
+    5%
+        opacity: 1
+    95%
+        opacity: 1
+    100%
+        opacity: 0
+
+@keyframes show-toast
+    0%
+        transform: translateY(100%)
+    10%
+        transform: translateY(0)
+    90%
+        transform: translateY(0)
+    100%
+        transform: translateY(100%)
