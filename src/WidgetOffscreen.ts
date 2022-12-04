@@ -7,14 +7,19 @@ export class WidgetOffscreen extends WidgetBase {
     ModelManagerWorker.postMessage([{ task: "loop", args: {} }]);
   }
 
-  override init(releaseInstance: boolean = false): void {
+  override init(): void {
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
 
-    ModelManagerWorker.postMessage([
-      { task: "resizeCanvas", args: { width, height } },
-      releaseInstance && { task: "release" }, // release resources
-      { task: "load", args: { model: this.models[this.currentModelIndex], version: this.version } },
-    ]);
+    const offscreenCanvas = this.CANVAS.transferControlToOffscreen();
+
+    ModelManagerWorker.postMessage(
+      [
+        { task: "offscreenCanvas", args: { canvas: offscreenCanvas } },
+        { task: "resizeCanvas", args: { width, height } },
+        { task: "load", args: { model: this.models[this.currentModelIndex], version: this.version } },
+      ],
+      [offscreenCanvas]
+    );
   }
 
   async onModelLoad(): Promise<void> {
@@ -35,7 +40,13 @@ export class WidgetOffscreen extends WidgetBase {
     this.toggleMenu(event);
     this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
 
-    this.init(true);
+    const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
+
+    ModelManagerWorker.postMessage([
+      { task: "resizeCanvas", args: { width, height } },
+      { task: "release" }, // release resources
+      { task: "load", args: { model: this.models[this.currentModelIndex], version: this.version } },
+    ]);
   }
 
   override onPointerMove(event: PointerEvent): void {

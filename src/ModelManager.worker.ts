@@ -9,9 +9,8 @@ let modelManager: ModelManager | undefined;
 
 self.onmessage = async ({ data }: MessageEvent) => {
   for (const { task, args } of data as Array<{ task: string; args: any }>) {
-    if (task === "OffscreenCanvas") {
+    if (task === "offscreenCanvas") {
       CANVAS = args.canvas;
-      self.postMessage({ task });
       continue;
     }
     if (task === "resizeCanvas") {
