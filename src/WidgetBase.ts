@@ -195,6 +195,7 @@ export class WidgetBase {
   elemRevealer = this.elemAppRoot.querySelector(`.${clsRevealer}`) as HTMLAnchorElement;
   CANVAS = this.elemAppRoot.querySelector("canvas") as HTMLCanvasElement;
   private messageAnimation: Animation | undefined;
+  private eventRegistered: boolean = false;
 
   constructor(userConfig: Config) {
     // update default settings with user defined config
@@ -254,6 +255,8 @@ export class WidgetBase {
   }
 
   registerEvents(): void {
+    if (this.eventRegistered) return;
+
     window.addEventListener("resize", (_event) => this.onWindowResize());
     document.addEventListener("pointerleave", () => this.onPointerLeave());
     document.addEventListener("pointerup", (event) => this.onPointerUp(event));
@@ -271,6 +274,8 @@ export class WidgetBase {
     if (this.draggable !== false) {
       this.elemAppRoot.addEventListener("pointerdown", (event) => this.onPointerDown(event));
     }
+
+    this.eventRegistered = true;
   }
 
   resizeApp({ width, height }: { width: number; height: number }): void {
@@ -554,6 +559,10 @@ export class WidgetBase {
 
   isMenuOpen(): boolean {
     return this.elemMenuToggle.classList.contains(clsMenuOpen);
+  }
+
+  closeMenu(): void {
+    this.elemMenuToggle.classList.remove(clsMenuOpen);
   }
 
   toggleMenu(event: PointerEvent): void {

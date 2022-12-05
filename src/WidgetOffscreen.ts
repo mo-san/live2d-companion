@@ -2,11 +2,6 @@ import { ModelManagerWorker } from "./index.offscreen";
 import { WidgetBase } from "./WidgetBase";
 
 export class WidgetOffscreen extends WidgetBase {
-  override async main(): Promise<void> {
-    await super.main();
-    ModelManagerWorker.postMessage([{ task: "start", args: {} }]);
-  }
-
   override init(): void {
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;
 
@@ -20,6 +15,11 @@ export class WidgetOffscreen extends WidgetBase {
       ],
       [offscreenCanvas]
     );
+  }
+
+  override async main(): Promise<void> {
+    await super.main();
+    ModelManagerWorker.postMessage([{ task: "start", args: {} }]);
   }
 
   async onModelLoad(): Promise<void> {
@@ -39,7 +39,7 @@ export class WidgetOffscreen extends WidgetBase {
 
     if (this.models.length <= 1) return;
 
-    this.toggleMenu(event);
+    this.closeMenu();
     this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
 
     const { clientWidth: width, clientHeight: height } = this.elemAppRoot;

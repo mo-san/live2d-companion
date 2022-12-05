@@ -468,10 +468,10 @@ export class ModelManager extends CubismUserModel {
   }
 
   async loop(time: number): Promise<void> {
+    if (!this.isRunning) return;
+
     // prepare the next frame
-    if (this.isRunning) {
-      requestAnimationFrame(async (time) => await this.loop(time));
-    }
+    requestAnimationFrame(async (time) => await this.loop(time));
 
     // proceed time
     Time.currentFrame = time;
