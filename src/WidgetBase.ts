@@ -3,6 +3,7 @@ import { CubismViewMatrix } from "@framework/math/cubismviewmatrix";
 import {
   AppDisappearingDurationSeconds,
   AppRevealingDurationSeconds,
+  clsAbout,
   clsAppRoot,
   clsAppRootMini,
   clsContent,
@@ -10,7 +11,6 @@ import {
   clsDragging,
   clsHider,
   clsLanguage,
-  clsLicense,
   clsMenuOpen,
   clsMenuToggle,
   clsMessage,
@@ -188,7 +188,7 @@ export class WidgetBase {
   elemSwitcher = this.elemAppRoot.querySelector(`.${clsSwitcher}`) as HTMLAnchorElement;
   elemHider = this.elemAppRoot.querySelector(`.${clsHider}`) as HTMLAnchorElement;
   elemMessageToggle = this.elemAppRoot.querySelector(`.${clsMessageToggle}`) as HTMLAnchorElement;
-  elemLicense = this.elemAppRoot.querySelector(`.${clsLicense}`) as HTMLDivElement;
+  elemAbout = this.elemAppRoot.querySelector(`.${clsAbout}`) as HTMLDivElement;
   elemLanguage = this.elemAppRoot.querySelector(`.${clsLanguage}`) as HTMLDivElement;
   elemLanguageOptions = this.elemAppRoot.querySelector(`.${clsLanguage} select`) as HTMLSelectElement;
   elemToast = this.elemAppRoot.querySelector(`.${clsToast}`) as HTMLDivElement;
@@ -676,7 +676,7 @@ export class WidgetBase {
       (this.elemMessageToggle.querySelector("p") as HTMLElement).innerText = uiStrings[clsMessageToggle].turnOn;
     }
     (this.elemLanguage.querySelector("p") as HTMLElement).innerText = uiStrings[clsLanguage];
-    (this.elemLicense.querySelector("p") as HTMLElement).innerText = uiStrings[clsLicense];
+    (this.elemAbout.querySelector("p") as HTMLElement).innerText = uiStrings[clsAbout];
     (this.elemRevealer.querySelector("p") as HTMLElement).innerText = uiStrings[clsRevealer];
   }
 

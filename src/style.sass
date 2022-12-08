@@ -2,8 +2,6 @@ $msg-bgcolor: rgba(236, 217, 188, 1)
 $msg-line-height: 1.2
 $msg-padding-topbottom: 10px
 $msg-text-shadow: rgba(104, 104, 104, 0.3)
-$revealer-text-shadow-color: rgb(244, 244, 244)
-$menuSize: 32px
 
 // to be shared with ones in Constants.ts
 $MessageDurationSeconds: 10s
@@ -40,6 +38,8 @@ $MenuRevealingDurationSeconds: 0.3s
         cursor: grabbing
 
     &__reveal
+        $revealer-text-shadow-color: rgb(244, 244, 244)
+        $revealer-visible-width: 1.6em
         display: none
         position: fixed
         padding: 0.4rem
@@ -54,6 +54,10 @@ $MenuRevealingDurationSeconds: 0.3s
         white-space: nowrap
 
         transition: transform 0.3s cubic-bezier(0, 0.78, 0.58, 1), text-shadow 0.5s ease-out
+        background-image: url("./companion_logo.svg")
+        background-repeat: no-repeat
+        background-position: right
+        background-size: calc((100% - $revealer-visible-width) * 0.8)
 
         p
             margin: 0
@@ -62,7 +66,7 @@ $MenuRevealingDurationSeconds: 0.3s
             bottom: 3rem
             right: 0.5rem
             align-content: end
-            transform: translateX(calc(100% - 1.6rem))
+            transform: translateX(calc(100% - $revealer-visible-width))
 
             &:hover
                 transform: translateX(1rem)
@@ -72,7 +76,7 @@ $MenuRevealingDurationSeconds: 0.3s
             bottom: 3rem
             left: 0.5rem
             align-content: start
-            transform: translateX(calc(-100% + 1.6rem))
+            transform: translateX(calc(-100% + $revealer-visible-width))
 
             &:hover
                 transform: translateX(-1rem)
@@ -82,7 +86,7 @@ $MenuRevealingDurationSeconds: 0.3s
             top: 3rem
             right: 0.5rem
             align-content: end
-            transform: translateX(calc(100% - 1.6rem))
+            transform: translateX(calc(100% - $revealer-visible-width))
 
             &:hover
                 transform: translateX(1rem)
@@ -92,13 +96,14 @@ $MenuRevealingDurationSeconds: 0.3s
             top: 3rem
             left: 0.5rem
             align-content: start
-            transform: translateX(calc(-100% + 1.6rem))
+            transform: translateX(calc(-100% + $revealer-visible-width))
 
             &:hover
                 transform: translateX(-1rem)
                 text-shadow: -8px 8px 0px $revealer-text-shadow-color
 
     &__content
+        $menu-button-size: 32px
         display: grid
         justify-items: center
         overflow: hidden
@@ -172,8 +177,8 @@ $MenuRevealingDurationSeconds: 0.3s
             position: absolute
             top: 0
             right: 0
-            width: $menuSize
-            height: $menuSize
+            width: $menu-button-size
+            height: $menu-button-size
             background: none
             border: none
             appearance: none
@@ -230,7 +235,7 @@ $MenuRevealingDurationSeconds: 0.3s
             align-self: flex-end
             gap: 0.5em
             padding: 1em
-            width: calc(100% - $menuSize)
+            width: calc(100% - $menu-button-size)
             height: 98%
             top: 1%
             left: 1%
@@ -253,13 +258,27 @@ $MenuRevealingDurationSeconds: 0.3s
                 height: max-content
 
             p
-                margin: 0
+                margin: 0 1em
+                display: grid
+                grid-template-columns: auto 1fr
+                align-items: center
+
+                &::before
+                    width: 32px
+                    height: 32px
+                    line-height: 32px
 
             &__hide
                 cursor: pointer
 
+                & p::before
+                    content: "🚷"
+
             &__switch
                 cursor: pointer
+
+                & p::before
+                    content: "🎭"
 
                 &.disabled
                     cursor: auto
@@ -268,13 +287,22 @@ $MenuRevealingDurationSeconds: 0.3s
             &__toggle-message
                 cursor: pointer
 
-            &__license
+                & p::before
+                    content: "💬"
+
+            &__about
+                & p::before
+                    content: "📫"
+
                 & ul
                     all: unset
                     padding-inline-start: 1.5em
                     text-align: start
 
             &__language
+                & p::before
+                    content: "🌏"
+
                 &__toast
                     display: none
                     position: absolute

@@ -17,7 +17,7 @@ export const clsMenu = `${clsContent}__menu` as const;
 export const clsHider = `${clsMenu}__hide` as const;
 export const clsSwitcher = `${clsMenu}__switch` as const;
 export const clsMessageToggle = `${clsMenu}__toggle-message` as const;
-export const clsLicense = `${clsMenu}__license` as const;
+export const clsAbout = `${clsMenu}__about` as const;
 export const clsLanguage = `${clsMenu}__language` as const;
 export const clsToast = `${clsLanguage}__toast` as const;
 export const clsToastVisible = `${clsToast}--visible` as const;
@@ -43,7 +43,7 @@ export const domString = `<div class="${clsAppRoot}">
         <select></select>
         <div class="${clsToast}">Saved!</div>
       </div>
-      <div class="${clsLicense}"><p></p><ul>
+      <div class="${clsAbout}"><p></p><ul>
         <li>Each Live2D model is copy&shy;righted by its respec&shy;tive author.</li>
         <li>This app (<b>Live2D Compa&shy;nion</b>) is under <a href="${urlLicense}">MIT Li&shy;cense</a>.<br>
             The source code is avail&shy;able on <a href="${urlRepository}">Github</a>.</li>
