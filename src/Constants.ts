@@ -26,7 +26,7 @@ export const clsDisabled = "disabled" as const;
 export const clsMenuOpen = "open" as const;
 
 const urlRepository = "https://github.com/mo-san/live2d-companion";
-const urlLicense = `${urlRepository}/LICENSE`;
+const urlLicense = "https://github.com/mo-san/live2d-companion/blob/main/LICENSE";
 const urlL2dOpen = "https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html";
 const urlL2dProp = "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html";
 export const domString = `<div class="${clsAppRoot}">
@@ -44,11 +44,11 @@ export const domString = `<div class="${clsAppRoot}">
         <div class="${clsToast}">Saved!</div>
       </div>
       <div class="${clsLicense}"><p></p><ul>
-        <li>Each Live2D model is copyrighted by its respective author.</li>
-        <li>For this app (<b>Live2D Companion</b>), <a href="${urlLicense}">MIT License</a>.<br>
-            The source code is available on <a href="${urlRepository}">Github</a>.</li>
-        <li>For <b>Cubism Web Framework</b>, <a href="${urlL2dOpen}">Live2D Open Software License Agreement</a>.</li>
-        <li>For <b>Live2D Cubism Core</b>, <a href="${urlL2dProp}">Live2D Proprietary Software License Agreement</a>.</li>
+        <li>Each Live2D model is copy&shy;righted by its respec&shy;tive author.</li>
+        <li>This app (<b>Live2D Compa&shy;nion</b>) is under <a href="${urlLicense}">MIT Li&shy;cense</a>.<br>
+            The source code is avail&shy;able on <a href="${urlRepository}">Github</a>.</li>
+        <li><b>Cubism Web Frame&shy;work</b> is under <a href="${urlL2dOpen}">Live2D Open Software Li&shy;cense Agree&shy;ment</a>.</li>
+        <li><b>Live2D Cubism Core</b> is under <a href="${urlL2dProp}">Live2D Pro&shy;prietary Software Li&shy;cense Agree&shy;ment</a>.</li>
       </div>
     </div>
   </div>
