@@ -86,7 +86,7 @@ function filePathToJsonPath(filePath: string): string {
  * @param path file path to convert
  */
 function toAbsolutePath(path: string | undefined): string {
-  if (path == null) return "";
+  if (path == null || path.length === 0) return "";
   const baseURL = document.querySelector("base")?.href ?? window.location.href.replace(/[^/]*$/, "");
   return new URL(path, baseURL).href;
 }
@@ -156,12 +156,12 @@ export class WidgetBase {
   modelCoordInitial: { x: number; y: number };
   /** How far from the edge the widget stands. Numbers can be 0~1 (inclusive) and will be interpreted as a percentage. */
   modelDistance: { x: number; y: number };
+  /** Messages which is common among all models. */
+  messagesCommon?: MessageSchema;
   /** Messages that the character says. */
   messages?: MessageSchema;
   /** This temporal variable may be messages or a URL to a JSON file containing messages. */
   private readonly _messageOrUrl: string | string[];
-  /** Where to position the message window. */
-  messagePosition: MessagePosition;
   /** Whether the message window is visible. */
   messageVisible: boolean;
   /** Whether we can cache the data. */
@@ -221,7 +221,8 @@ export class WidgetBase {
     }
 
     this._messageOrUrl = config.messages;
-    this.messagePosition = config.messagePosition.toLowerCase() as MessagePosition;
+    const messagePosition = config.messagePosition.toLowerCase() as MessagePosition;
+    this.elemMessage.classList.add(`${clsMessage}--${messagePosition}`);
     this.messageVisible = config.messageVisible;
 
     this.useCache = config.useCache;
@@ -241,8 +242,8 @@ export class WidgetBase {
   init(): void {}
 
   async main(): Promise<void> {
-    this.messages = await this.loadMesseges(this._messageOrUrl);
-    this.elemMessage.classList.add(`${clsMessage}--${this.messagePosition}`);
+    this.messagesCommon = await this.loadMesseges(this._messageOrUrl);
+    this.messages = await this.updateMessageList();
     this.baseWeightArray = Array(this.messages.general.length).fill(1);
 
     if (this.modelVisible) {
@@ -288,7 +289,17 @@ export class WidgetBase {
     this.elemAppRoot.style.height = `${height}px`;
   }
 
-  switchModel(_event: PointerEvent): void {}
+  async switchModel(event: PointerEvent): Promise<void> {
+    // ignore clicks or touches except for the left button click or the primary touch
+    if (event.button !== 0) return;
+
+    if (this.models.length <= 1) return;
+
+    this.closeMenu();
+
+    this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
+    this.messages = await this.updateMessageList();
+  }
 
   appear(event?: PointerEvent): void {
     // ignore clicks or touches except for the left button click or the primary touch
@@ -439,7 +450,14 @@ export class WidgetBase {
     this.deviceToScreenMatrix = deviceToScreenMatrix;
   }
 
-  async loadMesseges(messagesOrUrl: string | string[]): Promise<MessageSchema> {
+  async loadMesseges(messagesOrUrl: string | string[] | undefined): Promise<MessageSchema> {
+    if (messagesOrUrl == null) {
+      return {
+        general: [],
+        datetime: [],
+        touch: new Map(),
+      };
+    }
     if (messagesOrUrl instanceof Array) {
       return {
         general: messagesOrUrl.map((word: string) => word.trim()),
@@ -452,6 +470,15 @@ export class WidgetBase {
     this.insertLanguageOptions(keys);
     this.addEventListenerToLanguageOptions();
     return messages;
+  }
+
+  async updateMessageList(): Promise<MessageSchema> {
+    const messagesPerModel = await this.loadMesseges(this.models[this.currentModelIndex].messages);
+    return {
+      general: [...(this.messagesCommon?.general ?? []), ...(messagesPerModel?.general ?? [])],
+      datetime: [...(this.messagesCommon?.datetime ?? []), ...(messagesPerModel.datetime ?? [])],
+      touch: new Map([...(this.messagesCommon?.touch ?? []), ...(messagesPerModel.touch ?? [])]),
+    };
   }
 
   startSpeaking(): void {
