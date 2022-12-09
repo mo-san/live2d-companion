@@ -15,7 +15,7 @@ import {
 import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
-import { cacheBucketNameRoot, HitTestAreasNotNull, ModelLocationNotNull, MotionGroup, Priority } from "./Constants";
+import { cacheBucketNameRoot, HitTestAreasNotNull, ModelInfoNotNull, MotionGroup, Priority } from "./Constants";
 
 const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
   currentFrame: Date.now(),
@@ -88,7 +88,7 @@ export class ModelManager extends CubismUserModel {
    * @param glContext
    */
   static async init(
-    { path, hitTest }: ModelLocationNotNull,
+    { path, hitTest }: ModelInfoNotNull,
     version: string,
     glContext: WebGLRenderingContext
   ): Promise<ModelManager> {

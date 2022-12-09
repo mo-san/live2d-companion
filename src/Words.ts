@@ -1,18 +1,18 @@
 import { parse as parseYaml } from "yaml";
 import {
   cronTimeField,
-  LangData,
-  MesasgeDatetime,
-  MessageCategoryDatetime,
-  MessageCategoryGeneral,
-  MessageCategoryTouch,
-  MessageLanguageDefault,
-  MessageLanguageStorageName,
-  MessageSchema,
-  WordDateTime,
-  WordGeneral,
-  WordTouch,
-  YamlData,
+  TypeLangData,
+  TypeWordDateTime,
+  TypeWordGeneral,
+  TypeWordTouch,
+  TypeYamlData,
+  WordsDatetime,
+  WordsCategoryDatetime,
+  WordsCategoryGeneral,
+  WordsCategoryTouch,
+  WordsLanguageDefault,
+  WordsLanguageStorageName,
+  WordsSchema,
 } from "./Constants";
 
 // ------------------------------
@@ -81,7 +81,7 @@ function parseCronField(input: string, field: cronTimeField): string {
  | * | ^[0-59]$ |
  | *\/2 | ^(0/2/...56/58)$ |
  */
-function parseCronStrings(mappings: Map<string, string | string[]>): MesasgeDatetime[] {
+function parseCronStrings(mappings: Map<string, string | string[]>): WordsDatetime[] {
   const name2num = new Map<string, string>([
     ["sunday", "0"],
     ["monday", "1"],
@@ -100,8 +100,8 @@ function parseCronStrings(mappings: Map<string, string | string[]>): MesasgeDate
   ]);
 
   const result = [];
-  for (let [cron, messages] of mappings.entries()) {
-    if (typeof messages === "string") messages = [messages];
+  for (let [cron, words] of mappings.entries()) {
+    if (typeof words === "string") words = [words];
 
     // Cron-style datetime accepts only 5 fileds (<=> having 4 spaces).
     if (cron.match(/ /g)?.length !== 4) throw new Error(`Invalid datetime field format: ${cron}`);
@@ -123,7 +123,7 @@ function parseCronStrings(mappings: Map<string, string | string[]>): MesasgeDate
 
     const str = `${f.month}=${month} ${f.day}=${day} ${f.hour}=${hour} ${f.minute}=${minute} ${f.dayWeek}=${dayWeek}`;
     result.push({
-      messages: messages.map((word: string) => word.trim()),
+      words: words.map((word: string) => word.trim()),
       pattern: new RegExp(str),
     });
   }
@@ -159,7 +159,7 @@ export function getUserPrefLanguages(): string[] {
   // わざわざ配列を作り直しているのは、 "readonly" によるエラーを取り除くため
   if (!isLocalStorageAvailable()) return [...lng];
 
-  const langPref = localStorage.getItem(MessageLanguageStorageName);
+  const langPref = localStorage.getItem(WordsLanguageStorageName);
   if (langPref != null) return [langPref];
   return [...lng];
 }
@@ -175,7 +175,7 @@ export function getUserPrefLanguages(): string[] {
  *     前方一致 (zh)
  * あればそれを return, 見つからなければ次の言語タグに continue
  */
-function getSuitableLanguage(parsed: YamlData): string {
+function getSuitableLanguage(parsed: TypeYamlData): string {
   const yamlKeys = Array.from(parsed.keys());
 
   for (const language of getUserPrefLanguages()) {
@@ -194,7 +194,7 @@ function getSuitableLanguage(parsed: YamlData): string {
     }
   }
 
-  if (yamlKeys.includes(MessageLanguageDefault)) return MessageLanguageDefault;
+  if (yamlKeys.includes(WordsLanguageDefault)) return WordsLanguageDefault;
   return "";
 }
 
@@ -203,36 +203,37 @@ function getSuitableLanguage(parsed: YamlData): string {
  * あればそれを返し、なければ、 default, 最上層 へとフォールバックする。
  * それもなければ空を返す。
  */
-function getCategoryContent(parsed: YamlData, langName: string, result?: LangData): LangData {
-  result = result ?? (new Map() as LangData);
-  const allowedKeys = [MessageCategoryGeneral, MessageCategoryDatetime, MessageCategoryTouch];
+function getCategoryContent(parsed: TypeYamlData, langName: string, result?: TypeLangData): TypeLangData {
+  result = result ?? (new Map() as TypeLangData);
+  const allowedKeys = [WordsCategoryGeneral, WordsCategoryDatetime, WordsCategoryTouch];
 
-  const langContent = langName === "" ? (parsed as LangData) : ((parsed.get(langName) ?? new Map()) as LangData);
-  const insufficientCategories = Array.from(langContent.keys()).filter((key) => !(result as LangData).has(key));
+  const langContent =
+    langName === "" ? (parsed as TypeLangData) : ((parsed.get(langName) ?? new Map()) as TypeLangData);
+  const insufficientCategories = Array.from(langContent.keys()).filter((key) => !(result as TypeLangData).has(key));
   const foundKkeys = allowedKeys.filter((key) => insufficientCategories.includes(key));
   for (const key of foundKkeys) {
     result.set(key, langContent.get(key));
   }
 
   if (langName === "") return result;
-  if (langName === MessageLanguageDefault) return getCategoryContent(parsed, "", result);
-  return getCategoryContent(parsed, MessageLanguageDefault, result);
+  if (langName === WordsLanguageDefault) return getCategoryContent(parsed, "", result);
+  return getCategoryContent(parsed, WordsLanguageDefault, result);
 }
 
-export async function loadMessagesFromYaml(fileUrl: string): Promise<{ keys: string[]; messages: MessageSchema }> {
+export async function loadWordsFromYaml(fileUrl: string): Promise<{ keys: string[]; words: WordsSchema }> {
   const defaults = { general: [], datetime: [], touch: new Map() };
-  if (fileUrl === "") return { keys: [], messages: defaults };
+  if (fileUrl === "") return { keys: [], words: defaults };
 
   const text = await (await fetch(fileUrl)).text();
-  const parsed: YamlData = parseYaml(text, { mapAsMap: true, merge: true });
+  const parsed: TypeYamlData = parseYaml(text, { mapAsMap: true, merge: true });
 
   const langName = getSuitableLanguage(parsed);
-  const messages = getCategoryContent(parsed, langName);
+  const words = getCategoryContent(parsed, langName);
 
-  const _general = (messages.get(MessageCategoryGeneral) as WordGeneral) ?? [];
+  const _general = (words.get(WordsCategoryGeneral) as TypeWordGeneral) ?? [];
   const general = typeof _general === "string" ? [_general.trim()] : _general.map((word) => word.trim());
 
-  const _touch = (messages.get(MessageCategoryTouch) as WordTouch) ?? new Map<string, string | string[]>();
+  const _touch = (words.get(WordsCategoryTouch) as TypeWordTouch) ?? new Map<string, string | string[]>();
   const touch = Array.from(_touch.entries()).reduce((prev, [region, words]) => {
     if (typeof words === "string") words = [words];
     return prev.set(
@@ -241,9 +242,9 @@ export async function loadMessagesFromYaml(fileUrl: string): Promise<{ keys: str
     );
   }, new Map<string, string[]>());
 
-  const _datetime = (messages.get(MessageCategoryDatetime) as WordDateTime) ?? new Map();
+  const _datetime = (words.get(WordsCategoryDatetime) as TypeWordDateTime) ?? new Map();
   const datetime = parseCronStrings(_datetime);
 
-  const from: MessageSchema = { general, datetime, touch };
-  return { keys: Array.from(parsed.keys()), messages: Object.assign(defaults, from) };
+  const from: WordsSchema = { general, datetime, touch };
+  return { keys: Array.from(parsed.keys()), words: Object.assign(defaults, from) };
 }

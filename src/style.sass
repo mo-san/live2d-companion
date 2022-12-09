@@ -4,7 +4,7 @@ $msg-padding-topbottom: 10px
 $msg-text-shadow: rgba(104, 104, 104, 0.3)
 
 // to be shared with ones in Constants.ts
-$MessageDurationSeconds: 10s
+$WordsDurationSeconds: 10s
 $MenuRevealingDurationSeconds: 0.3s
 
 .live2d-companion
@@ -116,7 +116,7 @@ $MenuRevealingDurationSeconds: 0.3s
             &:hover
                 cursor: grab
 
-        &__message
+        &__words
             opacity: 0
             display: flex
             align-items: center
@@ -167,7 +167,7 @@ $MenuRevealingDurationSeconds: 0.3s
                     transform: scaleX(-1)
 
             &--visible
-                animation: show-message $MessageDurationSeconds ease-in-out
+                animation: show-words $WordsDurationSeconds ease-in-out
 
         &--mini &__menu
             padding: 0.3em
@@ -285,7 +285,7 @@ $MenuRevealingDurationSeconds: 0.3s
                     cursor: auto
                     color: rgba(0, 0, 0, 0.5)
 
-            &__toggle-message
+            &__toggle-words
                 cursor: pointer
 
                 & p::before
@@ -323,7 +323,7 @@ $MenuRevealingDurationSeconds: 0.3s
             &__language select option[selected][disabled]
                 display: none
 
-@keyframes show-message
+@keyframes show-words
     0%
         opacity: 0
     5%

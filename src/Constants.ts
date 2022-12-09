@@ -10,13 +10,13 @@ export const clsDragging = `${clsAppRoot}__dragging` as const;
 export const clsContent = `${clsAppRoot}__content` as const;
 export const clsMenuToggle = `${clsContent}__toggle-menu` as const;
 /** CSS class name for the message window */
-export const clsMessage = `${clsContent}__message` as const;
+export const clsWords = `${clsContent}__words` as const;
 /** CSS class name for the message window when visible */
-export const clsMessageVisible = `${clsMessage}--visible` as const;
+export const clsWordsVisible = `${clsWords}--visible` as const;
 export const clsMenu = `${clsContent}__menu` as const;
 export const clsHider = `${clsMenu}__hide` as const;
 export const clsSwitcher = `${clsMenu}__switch` as const;
-export const clsMessageToggle = `${clsMenu}__toggle-message` as const;
+export const clsWordsToggle = `${clsMenu}__toggle-words` as const;
 export const clsAbout = `${clsMenu}__about` as const;
 export const clsLanguage = `${clsMenu}__language` as const;
 export const clsToast = `${clsLanguage}__toast` as const;
@@ -32,12 +32,12 @@ const urlL2dProp = "https://www.live2d.com/eula/live2d-proprietary-software-lice
 export const domString = `<div class="${clsAppRoot}">
   <div class="${clsContent}" style="display: none;">
     <canvas></canvas>
-    <div class="${clsMessage}"></div>
+    <div class="${clsWords}"></div>
     <button class="${clsMenuToggle}"><div></div></button>
     <div class="${clsMenu}">
       <a class="${clsHider}"><p></p></a>
       <a class="${clsSwitcher}"><p></p></a>
-      <a class="${clsMessageToggle}"><p></p></a>
+      <a class="${clsWordsToggle}"><p></p></a>
       <div class="${clsLanguage}">
         <p></p>
         <select></select>
@@ -98,14 +98,14 @@ export const ModelDistance = {
 };
 
 /**  */
-const MessagePositionTop = "top";
-const MessagePositionBottom = "bottom";
-export type MessagePosition = typeof MessagePositionTop | typeof MessagePositionBottom;
+const WordsPositionTop = "top";
+const WordsPositionBottom = "bottom";
+export type WordsPosition = typeof WordsPositionTop | typeof WordsPositionBottom;
 
-/** The interval how long the next message will appear */
-export const MessageDurationSeconds = 10;
-export const MessageSwingingSeconds = 60;
-export const MessageAppearDelaySeconds = 3;
+/** The interval how long the next words will appear */
+export const WordsDurationSeconds = 10;
+export const WordsSwingingSeconds = 60;
+export const WordsAppearDelaySeconds = 3;
 export const AppDisappearingDurationSeconds = 1;
 export const AppRevealingDurationSeconds = 2;
 
@@ -144,34 +144,34 @@ export const Priority = {
 } as const;
 
 /* =====================
- * Configurations for the message file
+ * Configurations for the words file
    ===================== */
-export type YamlVersion = number | undefined;
-export type WordGeneral = string | string[] | undefined;
-export type WordTouch = Map<string, string | string[]> | undefined;
-export type WordDateTime = Map<string, string | string[]> | undefined;
-export type LangData = Map<string, WordGeneral | WordTouch | WordDateTime>;
-export type YamlData = Map<string, YamlVersion | LangData | Map<string, LangData> | undefined>;
+export type TypeYamlVersion = number | undefined;
+export type TypeWordGeneral = string | string[] | undefined;
+export type TypeWordTouch = Map<string, string | string[]> | undefined;
+export type TypeWordDateTime = Map<string, string | string[]> | undefined;
+export type TypeLangData = Map<string, TypeWordGeneral | TypeWordTouch | TypeWordDateTime>;
+export type TypeYamlData = Map<string, TypeYamlVersion | TypeLangData | Map<string, TypeLangData> | undefined>;
 
 export type cronTimeField = "minute" | "hour" | "day" | "month" | "dayWeek";
 
-/** How frequent date-time specific messages are told. */
-export const MessagePriority = 2;
-export const MessageVersion = "version";
-export const MessageCategoryGeneral = "general";
-export const MessageCategoryDatetime = "datetime";
-export const MessageCategoryTouch = "touch";
-export const MessageLanguageDefault = "default";
-export const MessageLanguageStorageName = `${clsAppRoot}-language`;
+/** How frequent date-time specific words are told. */
+export const WordsPriority = 2;
+export const WordsVersion = "version";
+export const WordsCategoryGeneral = "general";
+export const WordsCategoryDatetime = "datetime";
+export const WordsCategoryTouch = "touch";
+export const WordsLanguageDefault = "default";
+export const WordsLanguageStorageName = `${clsAppRoot}-language`;
 
-export interface MesasgeDatetime {
+export interface WordsDatetime {
   pattern: RegExp;
-  messages: string[];
+  words: string[];
 }
 
-export interface MessageSchema {
+export interface WordsSchema {
   general: string[];
-  datetime: MesasgeDatetime[];
+  datetime: WordsDatetime[];
   touch: Map<string, string[]>;
 }
 
@@ -179,7 +179,7 @@ export interface MessageSchema {
  * Schema definition for user-defined configs
    ===================== */
 /**  */
-export type MessagesOrUrl =
+export type WordsOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
@@ -199,7 +199,7 @@ export interface ModelInfo {
   /** The file path or URL of the config JSON file or the archive file containing the model. */
   path?: string;
   /** The messages the model speaks. */
-  messages?: MessagesOrUrl;
+  words?: WordsOrUrl;
   /** Used for hit testing, or collision testing.
    * @example [{ name: "HeadArea"; as: "Head" }, {...}]
    * @example [{ name: "HitAreaBody"; group: "BodyTouched"; as: "Body" }, {...}]
@@ -211,9 +211,9 @@ export interface ModelInfo {
  * Indicates where the model is stored and how we should render it.
  * Basically same as 'ModelLocation' but this doesn't allow null or undefined values.
  */
-export interface ModelLocationNotNull {
+export interface ModelInfoNotNull extends ModelInfo {
   path: string;
-  messages: MessagesOrUrl;
+  words: WordsOrUrl;
   hitTest: HitTestAreasNotNull;
 }
 
@@ -222,31 +222,31 @@ export interface Config {
   models: Array<string | ModelInfo>;
   useCache?: boolean;
   modelVisible?: boolean;
-  messageVisible?: boolean;
   modelPosition?: ModelPosition;
   slideInFrom?: Dimension;
   modelDistance?: typeof ModelDistance;
   width?: number;
   height?: number;
   draggable?: DraggableType;
-  messagePosition?: MessagePosition;
-  messages?: MessagesOrUrl;
+  words?: WordsOrUrl;
+  wordsVisible?: boolean;
+  wordsPosition?: WordsPosition;
   version?: string | number;
 }
 
-export interface ConfigNotNull {
+export interface ConfigNotNull extends Config {
   models: Array<string | ModelInfo>;
   useCache: boolean;
   modelVisible: boolean;
-  messageVisible: boolean;
   modelPosition: ModelPosition;
   slideInFrom: Dimension;
   modelDistance: typeof ModelDistance;
   width: number;
   height: number;
   draggable: DraggableType;
-  messagePosition: MessagePosition;
-  messages: MessagesOrUrl;
+  words: WordsOrUrl;
+  wordsVisible: boolean;
+  wordsPosition: WordsPosition;
   version: string | number;
 }
 
@@ -261,7 +261,7 @@ export const DefaultConfig: ConfigNotNull = {
   width: DefaultWidth,
   height: DefaultHeight,
   draggable: true,
-  messageVisible: true,
-  messagePosition: MessagePositionTop,
-  messages: [],
+  wordsVisible: true,
+  wordsPosition: WordsPositionTop,
+  words: [],
 };
