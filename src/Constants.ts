@@ -59,7 +59,6 @@ export const domString = `<div class="${clsAppRoot}">
  * Configurations for the widget itself
    ===================== */
 export const ErrorIncompatible = `[Live2D-Companion] This browser does not support APIs for the app to run. Please consider using another newer browser.`;
-export const ErrorInvalidPath = `[Live2D-Companion] File path does not end with .model3.json nor .zip! If you want to load the model from online storage, use object notation instead.`;
 export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
 
 /** The name of the cache storage in the browser's cache API */
@@ -197,10 +196,8 @@ export interface HitTestAreasNotNull {
  * Indicates where the model is stored and how we should render it.
  */
 export interface ModelInfo {
-  /** The file path or URL of the config JSON file of the model. */
-  jsonPath: string;
-  /** The file path or URL of the archive file which contains the model and its data. */
-  zipPath?: string;
+  /** The file path or URL of the config JSON file or the archive file containing the model. */
+  path?: string;
   /** The messages the model speaks. */
   messages?: MessagesOrUrl;
   /** Used for hit testing, or collision testing.
@@ -215,8 +212,7 @@ export interface ModelInfo {
  * Basically same as 'ModelLocation' but this doesn't allow null or undefined values.
  */
 export interface ModelLocationNotNull {
-  jsonPath: string;
-  zipPath: string;
+  path: string;
   messages: MessagesOrUrl;
   hitTest: HitTestAreasNotNull;
 }

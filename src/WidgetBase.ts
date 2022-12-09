@@ -30,7 +30,6 @@ import {
   DimensionTop,
   domString,
   DraggableType,
-  ErrorInvalidPath,
   ErrorNoModel,
   HitAreaName,
   HitTestAreasNotNull,
@@ -62,25 +61,6 @@ export function addDomIfNotExists(): void {
   }
 }
 
-// ------------------------------
-// ------------------------------
-/**
- *
- */
-function filePathToJsonPath(filePath: string): string {
-  filePath = filePath.replace(/[?#].*$/, "");
-
-  if (filePath.endsWith(".model3.json")) return filePath;
-
-  if (filePath.endsWith(".zip")) {
-    const modelName = filePath.replace(/^.*?\/?(?<baseName>[^/]+)\.zip$/, "$1");
-    return `${modelName}.model3.json`;
-  }
-  // folder specified
-  // e.g. 'models/Mao' turns into 'models/Mao/Mao.model3.json'
-  return filePath.replace(/(?<parentDir>^.*?(?<dirName>[^/]+))\/?$/, "$1/$2.model3.json");
-}
-
 /**
  * Converts relative path to absolute path. Because inlined web worker does not recognize relative paths.
  * @param path file path to convert
@@ -99,33 +79,17 @@ function getModelLocation(fileLocation: string | ModelInfo): ModelLocationNotNul
     head: { name: HitAreaName.Head },
     body: { name: HitAreaName.Body, group: MotionGroup.TapBody },
   };
-  const baseObj: ModelLocationNotNull = { jsonPath: "", zipPath: "", messages: [], hitTest };
+  const baseObj: ModelLocationNotNull = { path: "", messages: [], hitTest };
 
-  if (typeof fileLocation !== "string") {
-    fileLocation.hitTest = Object.assign(hitTest, fileLocation.hitTest);
-    return Object.assign(baseObj, {
-      ...fileLocation,
-      jsonPath: toAbsolutePath(fileLocation.jsonPath),
-      zipPath: toAbsolutePath(fileLocation.zipPath),
-    }) as ModelLocationNotNull;
+  if (typeof fileLocation === "string") {
+    return Object.assign(baseObj, { path: toAbsolutePath(fileLocation) });
   }
 
-  // strip query parameters
-  fileLocation = fileLocation.replace(/[?#].*$/, "");
-
-  if (fileLocation.endsWith(".model3.json")) {
-    return Object.assign(baseObj, { jsonPath: toAbsolutePath(fileLocation) });
-  }
-
-  if (fileLocation.endsWith(".zip")) {
-    return Object.assign(baseObj, {
-      jsonPath: toAbsolutePath(filePathToJsonPath(fileLocation)),
-      zipPath: toAbsolutePath(fileLocation),
-    });
-  }
-
-  console.error(ErrorInvalidPath);
-  return baseObj;
+  return Object.assign(baseObj, {
+    ...fileLocation,
+    path: toAbsolutePath(fileLocation.path),
+    hitTest: Object.assign(hitTest, fileLocation.hitTest),
+  }) as ModelLocationNotNull;
 }
 
 /**
