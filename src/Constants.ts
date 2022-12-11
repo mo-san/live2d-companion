@@ -187,7 +187,7 @@ interface HitTestAreas {
   head?: { name: string };
   body?: { name?: string; group?: string };
 }
-export interface HitTestAreasNotNull {
+export interface HitTestAreasNotNull extends HitTestAreas {
   head: { name: string };
   body: { name: string; group: string };
 }
