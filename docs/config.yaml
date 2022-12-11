@@ -31,6 +31,21 @@ params:
 #  customJs:
 #    - js/custom.js
 
+menu:
+  nav:
+    - name: Home
+      url: /
+      weight: 1
+    - name: Options
+      url: /options/
+      weight: 2
+    - name: Words (messages)
+      url: /words/
+      weight: 3
+    - name: Changelog
+      url: /changelog/
+      weight: 4
+
 markup:
   defaultMarkdownHandler: goldmark
   goldmark:
