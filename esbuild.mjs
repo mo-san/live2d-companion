@@ -40,6 +40,7 @@ function concatCubismCore() {
     platform: "browser",
     sourcemap: isDevelopment,
     metafile: doAnalysis,
+    loader: { ".svg": "base64" },
     // prettier-ignore
     plugins: [
       inlineWorkerPlugin({

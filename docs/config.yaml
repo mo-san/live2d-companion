@@ -1,0 +1,78 @@
+baseURL: https://mo-san.github.io/live2d-companion
+languageCode: en-us
+defaultContentLanguage: en
+title: Live2D Companion
+theme: cupper-hugo-theme
+enableGitInfo: true
+
+permalinks:
+  post: /:filename/
+
+imaging:
+  quality: 99
+
+params:
+  description: Live2D mascot 🪆 on your website!
+  homeMetaContent: Live2D Companion is a utility to display your favorite live2D model on your website.
+  footer: Made with [Hugo](https://gohugo.io/). Themed by [Cupper](https://github.com/zwbetz-gh/cupper-hugo-theme).
+  # For more date formats see https://gohugo.io/functions/format/
+  dateFormat: 0000-00-00
+#  codePenUser: someUser
+  katex: true
+  hideHeaderLinks: false
+  search: true
+  showThemeSwitcher: true
+  defaultDarkTheme: false
+  moveFooterToHeader: false
+  navTitleText: Live2D Companion
+  logoAlt: The logo of the site. A drawing of a girl with rainbow hair.
+  customCss:
+    - css/custom.css
+#  customJs:
+#    - js/custom.js
+
+menu:
+  nav:
+    - name: Home
+      url: /
+      weight: 1
+    - name: Options
+      url: /options/
+      weight: 2
+    - name: Words (messages)
+      url: /words/
+      weight: 3
+    - name: Changelog
+      url: /changelog/
+      weight: 4
+
+markup:
+  defaultMarkdownHandler: goldmark
+  goldmark:
+    extensions:
+      definitionList: true
+      footnote: true
+      linkify: true
+      strikethrough: true
+      table: true
+      taskList: true
+      typographer: true
+    parser:
+      attribute: true
+      autoHeadingID: true
+    renderer:
+      hardWraps: false
+      unsafe: true
+      xHTML: false
+  highlight:
+    codeFences: false
+    hl_Lines: ""
+    lineNoStart: 1
+    lineNos: false
+    lineNumbersInTable: true
+    noClasses: true
+    style: monokai
+    tabWidth: 4
+  tableOfContents:
+    endLevel: 6
+    startLevel: 2

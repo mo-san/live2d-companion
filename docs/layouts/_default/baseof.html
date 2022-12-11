@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}">
+  {{ partial "head.html" . }}
+  <body>
+    <a href="#main">{{ T "skip_to_content" }}</a>
+    {{ partial "svg.html" . }}
+    <div class="wrapper">
+      {{ partial "header.html" . }}
+      <div class="main-and-footer">
+        <div>
+          {{ block "main" . }}{{ end }}
+        </div>
+      </div>
+    </div>
+    {{ partial "script.html" . }}
+  </body>
+</html>

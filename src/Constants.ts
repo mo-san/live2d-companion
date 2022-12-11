@@ -10,14 +10,14 @@ export const clsDragging = `${clsAppRoot}__dragging` as const;
 export const clsContent = `${clsAppRoot}__content` as const;
 export const clsMenuToggle = `${clsContent}__toggle-menu` as const;
 /** CSS class name for the message window */
-export const clsMessage = `${clsContent}__message` as const;
+export const clsWords = `${clsContent}__words` as const;
 /** CSS class name for the message window when visible */
-export const clsMessageVisible = `${clsMessage}--visible` as const;
+export const clsWordsVisible = `${clsWords}--visible` as const;
 export const clsMenu = `${clsContent}__menu` as const;
 export const clsHider = `${clsMenu}__hide` as const;
 export const clsSwitcher = `${clsMenu}__switch` as const;
-export const clsMessageToggle = `${clsMenu}__toggle-message` as const;
-export const clsLicense = `${clsMenu}__license` as const;
+export const clsWordsToggle = `${clsMenu}__toggle-words` as const;
+export const clsAbout = `${clsMenu}__about` as const;
 export const clsLanguage = `${clsMenu}__language` as const;
 export const clsToast = `${clsLanguage}__toast` as const;
 export const clsToastVisible = `${clsToast}--visible` as const;
@@ -26,29 +26,29 @@ export const clsDisabled = "disabled" as const;
 export const clsMenuOpen = "open" as const;
 
 const urlRepository = "https://github.com/mo-san/live2d-companion";
-const urlLicense = `${urlRepository}/LICENSE`;
+const urlLicense = "https://github.com/mo-san/live2d-companion/blob/main/LICENSE";
 const urlL2dOpen = "https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html";
 const urlL2dProp = "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html";
 export const domString = `<div class="${clsAppRoot}">
   <div class="${clsContent}" style="display: none;">
     <canvas></canvas>
-    <div class="${clsMessage}"></div>
+    <div class="${clsWords}"></div>
     <button class="${clsMenuToggle}"><div></div></button>
     <div class="${clsMenu}">
       <a class="${clsHider}"><p></p></a>
       <a class="${clsSwitcher}"><p></p></a>
-      <a class="${clsMessageToggle}"><p></p></a>
+      <a class="${clsWordsToggle}"><p></p></a>
       <div class="${clsLanguage}">
         <p></p>
         <select></select>
         <div class="${clsToast}">Saved!</div>
       </div>
-      <div class="${clsLicense}"><p></p><ul>
-        <li>Each Live2D model is copyrighted by its respective author.</li>
-        <li>For this app (<b>Live2D Companion</b>), <a href="${urlLicense}">MIT License</a>.<br>
-            The source code is available on <a href="${urlRepository}">Github</a>.</li>
-        <li>For <b>Cubism Web Framework</b>, <a href="${urlL2dOpen}">Live2D Open Software License Agreement</a>.</li>
-        <li>For <b>Live2D Cubism Core</b>, <a href="${urlL2dProp}">Live2D Proprietary Software License Agreement</a>.</li>
+      <div class="${clsAbout}"><p></p><ul>
+        <li>Each Live2D model is copy&shy;righted by its respec&shy;tive author.</li>
+        <li>This app (<b>Live2D Compa&shy;nion</b>) is under <a href="${urlLicense}">MIT Li&shy;cense</a>.<br>
+            The source code is avail&shy;able on <a href="${urlRepository}">Github</a>.</li>
+        <li><b>Cubism Web Frame&shy;work</b> is under <a href="${urlL2dOpen}">Live2D Open Software Li&shy;cense Agree&shy;ment</a>.</li>
+        <li><b>Live2D Cubism Core</b> is under <a href="${urlL2dProp}">Live2D Pro&shy;prietary Software Li&shy;cense Agree&shy;ment</a>.</li>
       </div>
     </div>
   </div>
@@ -59,7 +59,6 @@ export const domString = `<div class="${clsAppRoot}">
  * Configurations for the widget itself
    ===================== */
 export const ErrorIncompatible = `[Live2D-Companion] This browser does not support APIs for the app to run. Please consider using another newer browser.`;
-export const ErrorInvalidPath = `[Live2D-Companion] File path does not end with .model3.json nor .zip! If you want to load the model from online storage, use object notation instead.`;
 export const ErrorNoModel = `[Live2D-Companion] No models provided.`;
 
 /** The name of the cache storage in the browser's cache API */
@@ -99,16 +98,16 @@ export const ModelDistance = {
 };
 
 /**  */
-const MessagePositionTop = "top";
-const MessagePositionBottom = "bottom";
-export type MessagePosition = typeof MessagePositionTop | typeof MessagePositionBottom;
+const WordsPositionTop = "top";
+const WordsPositionBottom = "bottom";
+export type WordsPosition = typeof WordsPositionTop | typeof WordsPositionBottom;
 
-/** The interval how long the next message will appear */
-export const MessageDurationSeconds = 10;
-export const MessageSwingingSeconds = 60;
-export const MessageAppearDelaySeconds = 3;
+/** The interval how long the next words will appear */
+export const WordsDurationSeconds = 10;
+export const WordsSwingingSeconds = 60;
+export const WordsAppearDelaySeconds = 3;
 export const AppDisappearingDurationSeconds = 1;
-export const AppRevealingDurationSeconds = 0.2;
+export const AppRevealingDurationSeconds = 2;
 
 export const LanguageValueUnset = "unset";
 
@@ -145,34 +144,34 @@ export const Priority = {
 } as const;
 
 /* =====================
- * Configurations for the message file
+ * Configurations for the words file
    ===================== */
-export type YamlVersion = number | undefined;
-export type WordGeneral = string | string[] | undefined;
-export type WordTouch = Map<string, string | string[]> | undefined;
-export type WordDateTime = Map<string, string | string[]> | undefined;
-export type LangData = Map<string, WordGeneral | WordTouch | WordDateTime>;
-export type YamlData = Map<string, YamlVersion | LangData | Map<string, LangData> | undefined>;
+export type TypeYamlVersion = number | undefined;
+export type TypeWordGeneral = string | string[] | undefined;
+export type TypeWordTouch = Map<string, string | string[]> | undefined;
+export type TypeWordDateTime = Map<string, string | string[]> | undefined;
+export type TypeLangData = Map<string, TypeWordGeneral | TypeWordTouch | TypeWordDateTime>;
+export type TypeYamlData = Map<string, TypeYamlVersion | TypeLangData | Map<string, TypeLangData> | undefined>;
 
 export type cronTimeField = "minute" | "hour" | "day" | "month" | "dayWeek";
 
-/** How frequent date-time specific messages are told. */
-export const MessagePriority = 2;
-export const MessageVersion = "version";
-export const MessageCategoryGeneral = "general";
-export const MessageCategoryDatetime = "datetime";
-export const MessageCategoryTouch = "touch";
-export const MessageLanguageDefault = "default";
-export const MessageLanguageStorageName = `${clsAppRoot}-language`;
+/** How frequent date-time specific words are told. */
+export const WordsPriority = 2;
+export const WordsVersion = "version";
+export const WordsCategoryGeneral = "general";
+export const WordsCategoryDatetime = "datetime";
+export const WordsCategoryTouch = "touch";
+export const WordsLanguageDefault = "default";
+export const WordsLanguageStorageName = `${clsAppRoot}-language`;
 
-export interface MesasgeDatetime {
+export interface WordsDatetime {
   pattern: RegExp;
-  messages: string[];
+  words: string[];
 }
 
-export interface MessageSchema {
+export interface WordsSchema {
   general: string[];
-  datetime: MesasgeDatetime[];
+  datetime: WordsDatetime[];
   touch: Map<string, string[]>;
 }
 
@@ -180,7 +179,7 @@ export interface MessageSchema {
  * Schema definition for user-defined configs
    ===================== */
 /**  */
-export type MessagesOrUrl =
+export type WordsOrUrl =
   | string // when specifying JSON or YAML URL
   | string[];
 
@@ -197,12 +196,10 @@ export interface HitTestAreasNotNull {
  * Indicates where the model is stored and how we should render it.
  */
 export interface ModelInfo {
-  /** The file path or URL of the config JSON file of the model. */
-  jsonPath: string;
-  /** The file path or URL of the archive file which contains the model and its data. */
-  zipPath?: string;
+  /** The file path or URL of the config JSON file or the archive file containing the model. */
+  path?: string;
   /** The messages the model speaks. */
-  messages?: MessagesOrUrl;
+  words?: WordsOrUrl;
   /** Used for hit testing, or collision testing.
    * @example [{ name: "HeadArea"; as: "Head" }, {...}]
    * @example [{ name: "HitAreaBody"; group: "BodyTouched"; as: "Body" }, {...}]
@@ -214,10 +211,9 @@ export interface ModelInfo {
  * Indicates where the model is stored and how we should render it.
  * Basically same as 'ModelLocation' but this doesn't allow null or undefined values.
  */
-export interface ModelLocationNotNull {
-  jsonPath: string;
-  zipPath: string;
-  messages: MessagesOrUrl;
+export interface ModelInfoNotNull extends ModelInfo {
+  path: string;
+  words: WordsOrUrl;
   hitTest: HitTestAreasNotNull;
 }
 
@@ -226,31 +222,31 @@ export interface Config {
   models: Array<string | ModelInfo>;
   useCache?: boolean;
   modelVisible?: boolean;
-  messageVisible?: boolean;
   modelPosition?: ModelPosition;
   slideInFrom?: Dimension;
   modelDistance?: typeof ModelDistance;
   width?: number;
   height?: number;
   draggable?: DraggableType;
-  messagePosition?: MessagePosition;
-  messages?: MessagesOrUrl;
+  words?: WordsOrUrl;
+  wordsVisible?: boolean;
+  wordsPosition?: WordsPosition;
   version?: string | number;
 }
 
-export interface ConfigNotNull {
+export interface ConfigNotNull extends Config {
   models: Array<string | ModelInfo>;
   useCache: boolean;
   modelVisible: boolean;
-  messageVisible: boolean;
   modelPosition: ModelPosition;
   slideInFrom: Dimension;
   modelDistance: typeof ModelDistance;
   width: number;
   height: number;
   draggable: DraggableType;
-  messagePosition: MessagePosition;
-  messages: MessagesOrUrl;
+  words: WordsOrUrl;
+  wordsVisible: boolean;
+  wordsPosition: WordsPosition;
   version: string | number;
 }
 
@@ -265,7 +261,7 @@ export const DefaultConfig: ConfigNotNull = {
   width: DefaultWidth,
   height: DefaultHeight,
   draggable: true,
-  messageVisible: true,
-  messagePosition: MessagePositionTop,
-  messages: [],
+  wordsVisible: true,
+  wordsPosition: WordsPositionTop,
+  words: [],
 };

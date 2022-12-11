@@ -1,6 +1,10 @@
 assets/*
 !assets/.gitkeep
 
+# built by Hugo
+docs/public/
+docs/resources/
+
 # Logs
 logs
 *.log

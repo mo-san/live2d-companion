@@ -1,0 +1,36 @@
+.logo {
+    display: grid;
+}
+.logo img {
+    justify-self: center;
+    width: 128px;
+    height: 128px;
+    margin: 0;
+    background-color: transparent;
+}
+.logo h1 {
+    margin: 0;
+    background-color: transparent;
+}
+
+/* a chain mark for link */
+.link-icon {
+    opacity: 0;
+}
+.h2-container:hover .link-icon {
+    opacity: 1;
+}
+
+/* Link to GitHub */
+.github {
+    position: relative;
+}
+.github::before {
+    content: "";
+    background: url(../github-mark.svg) no-repeat;
+    background-size: 1.5em;
+    width: 1.5em;
+    height: 1.5em;
+    position: absolute;
+    right: 0;
+}

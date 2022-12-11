@@ -1,0 +1,23 @@
+<header class="intro-and-nav" role="banner">
+  <div>
+    <div class="intro">
+      <a
+        class="logo"
+        href="{{ .Site.BaseURL }}"
+        aria-label="{{ .Site.Title }} home page"
+      >
+        <img
+          src="{{ "logo.svg" | relURL }}"
+          alt="{{ .Site.Params.logoAlt | default "Logo" }}"
+        >
+        <h1>{{ .Site.Params.navTitleText }}</h1>
+      </a>
+      <p class="library-desc">
+        {{ with .Site.Params.description }} {{ . | markdownify }} {{ end }}
+      </p>
+    </div>
+    {{ partial "nav.html" . }}
+    <a class="github" href="https://github.com/mo-san/live2d-companion">Source Code on GitHub</a>
+    {{ partial "footer.html" . }}
+  </div>
+</header>

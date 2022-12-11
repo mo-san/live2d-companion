@@ -15,13 +15,17 @@ import {
 import { csmMap } from "@framework/type/csmmap";
 import { csmVector } from "@framework/type/csmvector";
 import { unzipSync } from "fflate";
-import { cacheBucketNameRoot, HitTestAreasNotNull, ModelLocationNotNull, MotionGroup, Priority } from "./Constants";
+import { cacheBucketNameRoot, HitTestAreasNotNull, ModelInfoNotNull, MotionGroup, Priority } from "./Constants";
 
 const Time: { currentFrame: number; lastFrame: number; deltaTime: number } = {
   currentFrame: Date.now(),
   lastFrame: 0,
   deltaTime: 0,
 };
+
+function stripQueryString(str: string): string {
+  return str.replace(/[?#][^/]*$/, "");
+}
 
 /** find the longest common path element */
 function findLongestCommonPath(mapping: Map<string, ArrayBuffer>): string {
@@ -59,6 +63,11 @@ export class ModelManager extends CubismUserModel {
   protected motionsMap = new csmMap<string, ACubismMotion>();
   /** a mapping of file names and their contents */
   protected contentBufferMap = new Map<string, ArrayBuffer>();
+  /**
+   * The parent directory from .model3.json file.
+   * If JSON is specified this is the absolute path to the json,
+   * if Zip, this is the path from the root of the archive.
+   */
   protected parentDir: string = "";
   /** The properties of the currently playing motion. If set, starting another motion is suppressed. */
   protected motionHandle: CubismMotionQueueEntryHandle | null = null;
@@ -73,14 +82,13 @@ export class ModelManager extends CubismUserModel {
 
   /**
    * Initialization. Actual constructor for this class.
-   * @param jsonPath the file name (and its path) for the model's JSON file
-   * @param zipPath the file path of a zip file which contains the model data
+   * @param path The file path or URL of the config JSON file or the archive file containing the model.
    * @param hitTest specify this if your model has other name than "Head" or "Body" for hit detectable areas
    * @param version the version of the model(s) to be used for cache deletion
    * @param glContext
    */
   static async init(
-    { jsonPath, zipPath, hitTest }: ModelLocationNotNull,
+    { path, hitTest }: ModelInfoNotNull,
     version: string,
     glContext: WebGLRenderingContext
   ): Promise<ModelManager> {
@@ -100,12 +108,14 @@ export class ModelManager extends CubismUserModel {
 
     let buffer;
 
-    if (zipPath === "") {
-      modelManager.parentDir = jsonPath.replace(/\/[^/]*$/, "");
-      buffer = await modelManager.getBuffer(jsonPath, true);
+    if (stripQueryString(path).endsWith(".json")) {
+      modelManager.parentDir = stripQueryString(path).replace(/\/[^/]*$/, "");
+      buffer = await modelManager.getBuffer(path, true);
     } else {
-      modelManager.parentDir = await modelManager.fetchZip(zipPath);
-      buffer = await modelManager.getBuffer(jsonPath);
+      await modelManager.fetchZip(path);
+      modelManager.parentDir = findLongestCommonPath(modelManager.contentBufferMap);
+      const json = Array.from(modelManager.contentBufferMap.keys()).filter((key) => key.endsWith(".model3.json"))[0];
+      buffer = await modelManager.getBuffer(json, true);
     }
 
     modelManager.settings = new CubismModelSettingJson(buffer, buffer.byteLength);
@@ -162,8 +172,9 @@ export class ModelManager extends CubismUserModel {
     const filePath = _raw ? fileName : `${this.parentDir}/${fileName}`;
     const data = this.contentBufferMap.get(filePath);
 
-    if (data != null) return data;
+    if (data != null) return data; // if the user specified zip, return its contents here
 
+    // in case of json, we need to load the contents from cache
     const myCache = await caches.open(this.cacheBucketName);
     const cachedFile = await myCache.match(filePath);
 
@@ -177,7 +188,7 @@ export class ModelManager extends CubismUserModel {
     return this.contentBufferMap.get(filePath) as ArrayBuffer;
   }
 
-  protected async fetchZip(filePath: string): Promise<string> {
+  protected async fetchZip(filePath: string): Promise<void> {
     const myCache = await caches.open(cacheBucketNameRoot);
     const cachedFile = await myCache.match(filePath);
     if (cachedFile == null) {
@@ -189,7 +200,6 @@ export class ModelManager extends CubismUserModel {
         this.contentBufferMap = await unzip(new Uint8Array(await cachedFile.arrayBuffer()));
       }
     }
-    return findLongestCommonPath(this.contentBufferMap);
   }
 
   protected async loadModelImpl(): Promise<void> {
@@ -468,10 +478,10 @@ export class ModelManager extends CubismUserModel {
   }
 
   async loop(time: number): Promise<void> {
+    if (!this.isRunning) return;
+
     // prepare the next frame
-    if (this.isRunning) {
-      requestAnimationFrame(async (time) => await this.loop(time));
-    }
+    requestAnimationFrame(async (time) => await this.loop(time));
 
     // proceed time
     Time.currentFrame = time;

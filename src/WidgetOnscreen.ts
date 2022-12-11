@@ -41,11 +41,7 @@ export class WidgetOnscreen extends WidgetBase {
   }
 
   override async switchModel(event: PointerEvent): Promise<void> {
-    // ignore clicks or touches except for the left button click or the primary touch
-    if (event.button !== 0) return;
-
-    this.toggleMenu(event);
-    this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
+    await super.switchModel(event);
 
     await this.init(true);
   }
