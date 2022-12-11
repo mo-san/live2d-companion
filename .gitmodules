@@ -1,3 +1,6 @@
 [submodule "Live2dSdk/Framework"]
 	path = Live2dSdk/Framework
 	url = https://github.com/Live2D/CubismWebFramework
+[submodule "docs/themes/cupper-hugo-theme"]
+	path = docs/themes/cupper-hugo-theme
+	url = https://github.com/zwbetz-gh/cupper-hugo-theme.git
