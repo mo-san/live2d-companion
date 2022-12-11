@@ -1,0 +1,61 @@
+version: 1
+
+default:
+  datetime:
+#   .------------ minute (0 - 59)
+#   | .---------- hour (0 - 23)
+#   | | .-------- day of month (1 - 31)
+#   | | | .------ month (1 - 12) OR jan,feb,mar,apr ...
+#   | | | | .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+#   | | | | |
+#   * * * * *: message
+    1 2 * * *: hello
+    "* * 31 12 1,6": # say something on 31st December
+      - Wish you happy new year!
+      - foo bar
+      - blah blah
+    0 2 4-8 * *:
+      - once upon a time
+    "* * * * *":
+      - once upon a time
+      - beta zero and time
+      - queue -microtask es-abstract
+  touch:
+    Head:
+      - you touch my head?
+      - another
+      - yet another
+    Body:
+      - what?
+      - foo bar
+      - baz qux
+  general:
+    - hello
+    - world
+    - lorem ipsum dor sit amet
+    - |
+      you can
+      write
+      multi lines
+
+jax: &jp
+  touch:
+    Head:
+      - 頭
+    Body:
+      - 体
+  general:
+    - ！？
+    - こんにちは
+    - おはようございます
+
+ja_JP:
+  *jp
+
+ja-JP:
+  *jp
+
+kr:
+  <<: *jp
+  general:
+    - 좋은 아침
