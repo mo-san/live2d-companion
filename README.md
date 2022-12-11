@@ -93,7 +93,7 @@ You can let the model say something.
 
 # License
 
-- MIT License (for this entire repository except for files inside [`Live2dSdk/Core`](Live2dSdk/Core), [`Live2dSdk/Framework`](Live2dSdk/Framework), and models inside [`assets/models/*`](assets/models))
+- MIT License (for this entire repository except for files inside [`Live2dSdk/Core`](Live2dSdk/Core), [`Live2dSdk/Framework`](Live2dSdk/Framework), and models inside [`assets/models/*`](docs/static/models))
 - **[Live2D Cubism Core](https://www.live2d.com/en/download/cubism-sdk/download-web/)** is under [Live2D Proprietary Software License Agreement](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html).
 - **[Cubism Web Framework](https://github.com/Live2D/CubismWebFramework)** is under [Live2D Open Software License Agreement](https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html).
 - Live2D models used in this demo are available under [Live2D Free Material License](https://www.live2d.com/eula/live2d-free-material-license-agreement_en.html).
