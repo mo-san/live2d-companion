@@ -233,7 +233,7 @@ export class WidgetBase {
     this.elemWordsToggle.addEventListener("pointerup", (event) => this.toggleWords(event));
 
     if (this.models.length >= 2) {
-      this.elemSwitcher.addEventListener("pointerup", (event) => this.switchModel(event));
+      this.elemSwitcher.addEventListener("pointerup", async (event) => await this.switchModel(event));
     }
     if (this.draggable !== false) {
       this.elemAppRoot.addEventListener("pointerdown", (event) => this.onPointerDown(event));
@@ -341,7 +341,7 @@ export class WidgetBase {
 
   onPointerDown(event: PointerEvent): void {
     // ignore when touched with more than one fingers
-    if (event.button != 0) return;
+    if (event.button !== 0) return;
 
     if ((event.target as HTMLElement).tagName === "CANVAS") this.elemAppRoot.classList.add(`${clsDragging}`);
 
