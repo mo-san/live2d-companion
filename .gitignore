@@ -2,6 +2,9 @@
 docs/public/
 docs/resources/
 
+# to be used for testing locally
+/index.html
+
 # Logs
 logs
 *.log
@@ -14,6 +17,7 @@ thumbs.db
 
 node_modules
 dist-ssr
+dist_dev
 dist_webpack
 *.local
 *.env
