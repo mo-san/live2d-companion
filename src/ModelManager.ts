@@ -189,7 +189,7 @@ export class ModelManager extends CubismUserModel {
   }
 
   protected async fetchZip(filePath: string): Promise<void> {
-    const myCache = await caches.open(cacheBucketNameRoot);
+    const myCache = await caches.open(this.cacheBucketName);
     const cachedFile = await myCache.match(filePath);
     if (cachedFile == null) {
       await myCache.add(filePath);

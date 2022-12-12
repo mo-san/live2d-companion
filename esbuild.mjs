@@ -12,7 +12,7 @@ const version = process.env.npm_package_version;
 const watchChanges = process.argv.slice(2).includes("--watch");
 const doAnalysis = process.env.MODE === "analyze";
 const isDevelopment = watchChanges || process.env.NODE_ENV === "development";
-const servingRoot = "dist";
+const servingRoot = isDevelopment ? "dist_dev" : "dist";
 const servingPort = 5173;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

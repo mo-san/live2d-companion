@@ -251,7 +251,7 @@ export interface ConfigNotNull extends Config {
 }
 
 export const DefaultConfig: ConfigNotNull = {
-  version: "1",
+  version: 1,
   models: [],
   useCache: true,
   modelVisible: true,
