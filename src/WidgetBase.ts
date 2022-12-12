@@ -135,7 +135,7 @@ export class WidgetBase {
   /** The version number of the models. Models who have lower versions will be removed from cache. */
   version: string;
   /** The position of a mouse or a finger. */
-  private pointerCoord: { x: number; y: number } = { x: 0, y: 0 };
+  private readonly pointerCoord: { x: number; y: number } = { x: 0, y: 0 };
   /** An array of weights for the random word selection. */
   private baseWeightArray: number[] = [];
   /** A matrix which maps the edges of the window to the those of the widget. */
