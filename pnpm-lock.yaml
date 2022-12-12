@@ -9,7 +9,7 @@ specifiers:
   '@typescript-eslint/parser': ^5.46.0
   browserslist-to-esbuild: ^1.2.0
   create-serve: ^1.0.1
-  esbuild: ^0.15.18
+  esbuild: ^0.16.4
   esbuild-plugin-inline-worker: ^0.1.1
   esbuild-sass-plugin: ^2.4.3
   eslint: ^8.29.0
@@ -20,7 +20,7 @@ specifiers:
   eslint-plugin-n: ^15.6.0
   eslint-plugin-promise: ^6.1.1
   fflate: ^0.7.4
-  fs-extra: ^10.1.0
+  fs-extra: ^11.1.0
   jest: ^29.3.1
   jest-environment-jsdom: ^29.3.1
   prettier: ^2.8.1
@@ -40,7 +40,7 @@ devDependencies:
   '@typescript-eslint/parser': 5.46.0_ha6vam6werchizxrnqvarmz2zu
   browserslist-to-esbuild: 1.2.0
   create-serve: 1.0.1
-  esbuild: 0.15.18
+  esbuild: 0.16.4
   esbuild-plugin-inline-worker: 0.1.1
   esbuild-sass-plugin: 2.4.3
   eslint: 8.29.0
@@ -50,7 +50,7 @@ devDependencies:
   eslint-plugin-import: 2.26.0_jx43xxcguvnqqmtmaaygwl7cmu
   eslint-plugin-n: 15.6.0_eslint@8.29.0
   eslint-plugin-promise: 6.1.1_eslint@8.29.0
-  fs-extra: 10.1.0
+  fs-extra: 11.1.0
   jest: 29.3.1
   jest-environment-jsdom: 29.3.1
   prettier: 2.8.1
@@ -2680,9 +2680,9 @@ packages:
       mime-types: 2.1.35
     dev: true
 
-  /fs-extra/10.1.0:
-    resolution: {integrity: sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ==}
-    engines: {node: '>=12'}
+  /fs-extra/11.1.0:
+    resolution: {integrity: sha512-0rcTq621PD5jM/e0a3EJoGC/1TC5ZBCERW82LQuwfGnCa1V8w7dpYH1yNu+SLb6E5dkeCBzKEyLGlFrnr+dUyw==}
+    engines: {node: '>=14.14'}
     dependencies:
       graceful-fs: 4.2.10
       jsonfile: 6.1.0
