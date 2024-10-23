@@ -23,7 +23,7 @@
     "@typescript-eslint/parser": "^5.46.0",
     "browserslist-to-esbuild": "^1.2.0",
     "create-serve": "^1.0.1",
-    "esbuild": "^0.16.4",
+    "esbuild": "^0.24.0",
     "esbuild-plugin-inline-worker": "^0.1.1",
     "esbuild-sass-plugin": "^2.4.3",
     "eslint": "^8.29.0",
